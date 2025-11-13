@@ -147,26 +147,15 @@ class HomeViewModel: ObservableObject {
     }
 
     func createDefaultUpcomingWorkouts() {
-        let calendar = Calendar.current
-        let today = Date()
-
-        guard let firstWorkoutDate = calendar.date(byAdding: .day, value: 1, to: today),
-              let secondWorkoutDate = calendar.date(byAdding: .day, value: 4, to: today) else {
-            errorMessage = "予定の作成に失敗しました: 日付の計算エラー"
-            return
-        }
-
         upcomingWorkouts = [
             UpcomingWorkout(
                 title: "初回ランニング",
-                scheduledDate: firstWorkoutDate,
                 estimatedDuration: 900, // 15 minutes
                 targetDistance: 1000, // 1km
                 notes: "ゆっくりしたペースで走りましょう"
             ),
             UpcomingWorkout(
                 title: "2回目のランニング",
-                scheduledDate: secondWorkoutDate,
                 estimatedDuration: 1200, // 20 minutes
                 targetDistance: 1500, // 1.5km
                 notes: "前回のペースを維持しましょう"
