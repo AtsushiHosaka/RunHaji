@@ -49,6 +49,8 @@ struct RPEInputView: View {
                     step: 1
                 )
                 .tint(rpeColor)
+                .accessibilityLabel("運動のきつさを選択")
+                .accessibilityValue("\(selectedRPE)、\(rpeLevel)")
 
                 HStack {
                     Text("非常に楽")
@@ -117,18 +119,8 @@ struct RPEInputView: View {
     }
 
     private var rpeColor: Color {
-        switch selectedRPE {
-        case 1...3:
-            return .green
-        case 4...6:
-            return .yellow
-        case 7...8:
-            return .orange
-        case 9...10:
-            return .red
-        default:
-            return .gray
-        }
+        guard let rpe = RPE(value: selectedRPE) else { return .gray }
+        return rpe.color
     }
 
     private var rpeIcon: String {

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 /// RPE (Rate of Perceived Exertion) - 主観的運動強度
 /// 1-10のスケールで運動のきつさを評価
@@ -65,19 +66,19 @@ struct RPE: Codable, Equatable {
         }
     }
 
-    /// RPE値に基づく色（SwiftUI Colorで使用）
-    var colorName: String {
+    /// RPE値に基づく色
+    var color: Color {
         switch value {
         case 1...3:
-            return "green"
+            return .green
         case 4...6:
-            return "yellow"
+            return .yellow
         case 7...8:
-            return "orange"
+            return .orange
         case 9...10:
-            return "red"
+            return .red
         default:
-            return "gray"
+            return .gray
         }
     }
 }

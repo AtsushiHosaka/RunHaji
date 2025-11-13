@@ -99,7 +99,10 @@ struct ScoringView: View {
                     successOverlay
                 }
             }
-            .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
+            .alert("エラー", isPresented: Binding(
+                get: { viewModel.errorMessage != nil },
+                set: { if !$0 { viewModel.errorMessage = nil } }
+            )) {
                 Button("OK") {
                     viewModel.errorMessage = nil
                 }
@@ -150,7 +153,7 @@ struct ScoringView: View {
                 StatCard(
                     icon: "flame",
                     title: "カロリー",
-                    value: String(format: "%.0f kcal", calories),
+                    value: viewModel.formatCalories(calories),
                     color: .red
                 )
             }
