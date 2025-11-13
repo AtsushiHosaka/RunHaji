@@ -63,4 +63,19 @@ enum RunningGoal: String, Codable, CaseIterable {
     var description: String {
         return self.rawValue
     }
+
+    var roadmapTitle: String {
+        switch self {
+        case .loseWeight:
+            return "減量のための道"
+        case .buildStamina:
+            return "体力向上のための道"
+        case .stressRelief:
+            return "ストレス解消のための道"
+        case .completeDistance:
+            return "完走のための道"
+        case .healthImprovement:
+            return "健康改善のための道"
+        }
+    }
 }

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct RoadmapView: View {
     let roadmap: Roadmap?
+    @State private var showComingSoonAlert = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -64,7 +65,7 @@ struct RoadmapView: View {
                 .foregroundColor(.secondary)
 
             Button(action: {
-                // TODO: Navigate to roadmap creation
+                showComingSoonAlert = true
             }) {
                 Text("ロードマップを作成")
                     .font(.subheadline)
@@ -75,16 +76,18 @@ struct RoadmapView: View {
                     .background(Color.blue)
                     .cornerRadius(8)
             }
+            .alert("準備中", isPresented: $showComingSoonAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("この機能は現在開発中です。しばらくお待ちください。")
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 32)
     }
 
     private func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.locale = Locale(identifier: "ja_JP")
-        return formatter.string(from: date)
+        DateFormatter.japaneseMedium.string(from: date)
     }
 }
 
@@ -104,6 +107,7 @@ struct MilestoneCard: View {
                             .font(.caption2)
                             .foregroundColor(milestone.isCompleted ? .white : .gray)
                     )
+                    .accessibilityLabel(milestone.isCompleted ? "完了済み" : "未完了")
 
                 if !isLast {
                     Rectangle()
@@ -113,6 +117,7 @@ struct MilestoneCard: View {
                 }
             }
             .frame(width: 20)
+            .accessibilityElement(children: .combine)
 
             // Milestone content
             VStack(alignment: .leading, spacing: 8) {
@@ -163,13 +168,13 @@ struct MilestoneCard: View {
 
             Spacer()
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(milestone.title), \(milestone.isCompleted ? "完了済み" : "未完了")")
+        .accessibilityHint(milestone.description ?? "")
     }
 
     private func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.locale = Locale(identifier: "ja_JP")
-        return formatter.string(from: date)
+        DateFormatter.japaneseShort.string(from: date)
     }
 }
 
@@ -198,7 +203,7 @@ struct MilestoneCard: View {
 
     let sampleRoadmap = Roadmap(
         userId: "test-user",
-        title: "健康を改善したいへの道",
+        title: "健康改善への道",
         goal: .healthImprovement,
         targetDate: Calendar.current.date(byAdding: .month, value: 3, to: Date()),
         milestones: sampleMilestones
