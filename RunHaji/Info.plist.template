@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Supabase Configuration -->
+	<key>SUPABASE_URL</key>
+	<string>YOUR_SUPABASE_PROJECT_URL</string>
+	<key>SUPABASE_ANON_KEY</key>
+	<string>YOUR_SUPABASE_ANON_KEY</string>
+
+	<!-- HealthKit Configuration -->
+	<key>NSHealthShareUsageDescription</key>
+	<string>RunHajiはあなたのランニング記録を取得し、パーソナライズされたロードマップを作成するためにHealthKitデータを使用します。</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>RunHajiはワークアウトデータをHealthKitに保存します。</string>
+
+	<!-- Location Permission (for running tracking) -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>RunHajiはランニング中の位置情報を記録するために位置情報を使用します。</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>RunHajiはランニング中の位置情報を記録するために位置情報を使用します。</string>
+
+	<!-- Motion & Fitness Permission -->
+	<key>NSMotionUsageDescription</key>
+	<string>RunHajiはランニング中の動作データを記録するためにモーションデータを使用します。</string>
+</dict>
+</plist>
