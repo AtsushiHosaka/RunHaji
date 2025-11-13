@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 @MainActor
 class HomeViewModel: ObservableObject {
@@ -15,6 +16,9 @@ class HomeViewModel: ObservableObject {
     @Published var recentSessions: [WorkoutSession] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+
+    private let decoder = JSONDecoder()
+    private let encoder = JSONEncoder()
 
     init() {
         loadUserData()
@@ -37,15 +41,14 @@ class HomeViewModel: ObservableObject {
 
     var greetingMessage: String {
         let hour = Calendar.current.component(.hour, from: Date())
-        let name = user?.profile.age != nil ? "さん" : ""
 
         switch hour {
         case 5..<12:
-            return "おはようございます\(name)"
+            return "おはようございます"
         case 12..<18:
-            return "こんにちは\(name)"
+            return "こんにちは"
         default:
-            return "こんばんは\(name)"
+            return "こんばんは"
         }
     }
 
@@ -54,11 +57,10 @@ class HomeViewModel: ObservableObject {
             return
         }
 
-        let decoder = JSONDecoder()
         do {
             user = try decoder.decode(User.self, from: data)
         } catch {
-            errorMessage = "ユーザーデータの読み込みに失敗しました"
+            errorMessage = "ユーザーデータの読み込みに失敗しました: \(error.localizedDescription)"
         }
     }
 
@@ -70,11 +72,10 @@ class HomeViewModel: ObservableObject {
             return
         }
 
-        let decoder = JSONDecoder()
         do {
             roadmap = try decoder.decode(Roadmap.self, from: data)
         } catch {
-            errorMessage = "ロードマップの読み込みに失敗しました"
+            errorMessage = "ロードマップの読み込みに失敗しました: \(error.localizedDescription)"
         }
     }
 
@@ -85,11 +86,10 @@ class HomeViewModel: ObservableObject {
             return
         }
 
-        let decoder = JSONDecoder()
         do {
             upcomingWorkouts = try decoder.decode([UpcomingWorkout].self, from: data)
         } catch {
-            errorMessage = "予定の読み込みに失敗しました"
+            errorMessage = "予定の読み込みに失敗しました: \(error.localizedDescription)"
         }
     }
 
@@ -98,17 +98,19 @@ class HomeViewModel: ObservableObject {
             return
         }
 
-        let decoder = JSONDecoder()
         do {
             let sessions = try decoder.decode([WorkoutSession].self, from: data)
-            recentSessions = Array(sessions.prefix(5))
+            recentSessions = Array(sessions.sorted(by: { $0.startDate > $1.startDate }).prefix(5))
         } catch {
-            errorMessage = "ワークアウト履歴の読み込みに失敗しました"
+            errorMessage = "ワークアウト履歴の読み込みに失敗しました: \(error.localizedDescription)"
         }
     }
 
     func createDefaultRoadmap() {
-        guard let user = user else { return }
+        guard let user = user else {
+            errorMessage = "ユーザーデータが見つかりません。オンボーディングを完了してください。"
+            return
+        }
 
         let goal = user.profile.goal ?? .healthImprovement
 
@@ -135,7 +137,7 @@ class HomeViewModel: ObservableObject {
 
         roadmap = Roadmap(
             userId: user.id.uuidString,
-            title: "\(goal.description)への道",
+            title: goal.roadmapTitle,
             goal: goal,
             targetDate: Calendar.current.date(byAdding: .month, value: 3, to: Date()),
             milestones: milestones
@@ -148,17 +150,23 @@ class HomeViewModel: ObservableObject {
         let calendar = Calendar.current
         let today = Date()
 
+        guard let firstWorkoutDate = calendar.date(byAdding: .day, value: 1, to: today),
+              let secondWorkoutDate = calendar.date(byAdding: .day, value: 4, to: today) else {
+            errorMessage = "予定の作成に失敗しました: 日付の計算エラー"
+            return
+        }
+
         upcomingWorkouts = [
             UpcomingWorkout(
                 title: "初回ランニング",
-                scheduledDate: calendar.date(byAdding: .day, value: 1, to: today)!,
+                scheduledDate: firstWorkoutDate,
                 estimatedDuration: 900, // 15 minutes
                 targetDistance: 1000, // 1km
                 notes: "ゆっくりしたペースで走りましょう"
             ),
             UpcomingWorkout(
                 title: "2回目のランニング",
-                scheduledDate: calendar.date(byAdding: .day, value: 4, to: today)!,
+                scheduledDate: secondWorkoutDate,
                 estimatedDuration: 1200, // 20 minutes
                 targetDistance: 1500, // 1.5km
                 notes: "前回のペースを維持しましょう"
@@ -171,22 +179,20 @@ class HomeViewModel: ObservableObject {
     func saveRoadmap() {
         guard let roadmap = roadmap else { return }
 
-        let encoder = JSONEncoder()
         do {
             let data = try encoder.encode(roadmap)
             UserDefaults.standard.set(data, forKey: "user_roadmap")
         } catch {
-            errorMessage = "ロードマップの保存に失敗しました"
+            errorMessage = "ロードマップの保存に失敗しました: \(error.localizedDescription)"
         }
     }
 
     func saveUpcomingWorkouts() {
-        let encoder = JSONEncoder()
         do {
             let data = try encoder.encode(upcomingWorkouts)
             UserDefaults.standard.set(data, forKey: "upcoming_workouts")
         } catch {
-            errorMessage = "予定の保存に失敗しました"
+            errorMessage = "予定の保存に失敗しました: \(error.localizedDescription)"
         }
     }
 

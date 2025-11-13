@@ -38,7 +38,10 @@ struct HomeView: View {
             }
             .alert(
                 "エラー",
-                isPresented: .constant(viewModel.errorMessage != nil),
+                isPresented: Binding(
+                    get: { viewModel.errorMessage != nil },
+                    set: { if !$0 { viewModel.errorMessage = nil } }
+                ),
                 actions: {
                     Button("OK") {
                         viewModel.errorMessage = nil
@@ -82,25 +85,22 @@ struct HomeView: View {
             }
 
             // Progress Bar
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.gray.opacity(0.2))
-                        .frame(height: 12)
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.gray.opacity(0.2))
+                    .frame(height: 12)
 
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: [.blue, .cyan]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [.blue, .cyan]),
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
-                        .frame(
-                            width: geometry.size.width * (viewModel.progressPercentage / 100),
-                            height: 12
-                        )
-                }
+                    )
+                    .frame(height: 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .scaleEffect(x: viewModel.progressPercentage / 100, y: 1, anchor: .leading)
             }
             .frame(height: 12)
 
@@ -218,21 +218,15 @@ struct UpcomingWorkoutCard: View {
     }
 
     private func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        formatter.locale = Locale(identifier: "ja_JP")
-        return formatter.string(from: date)
+        DateFormatter.japaneseMediumWithTime.string(from: date)
     }
 
     private func formattedDuration(_ duration: TimeInterval) -> String {
-        let minutes = Int(duration / 60)
-        return "\(minutes)分"
+        duration.formattedMinutes()
     }
 
     private func formattedDistance(_ distance: Double) -> String {
-        let km = distance / 1000
-        return String(format: "%.1fkm", km)
+        distance.formattedDistance()
     }
 }
 
@@ -301,21 +295,15 @@ struct RecentSessionCard: View {
     }
 
     private func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.locale = Locale(identifier: "ja_JP")
-        return formatter.string(from: date)
+        DateFormatter.japaneseMedium.string(from: date)
     }
 
     private func formattedDuration(_ duration: TimeInterval) -> String {
-        let minutes = Int(duration / 60)
-        let seconds = Int(duration.truncatingRemainder(dividingBy: 60))
-        return String(format: "%d:%02d", minutes, seconds)
+        duration.formattedDuration()
     }
 
     private func formattedDistance(_ distance: Double) -> String {
-        let km = distance / 1000
-        return String(format: "%.2f km", km)
+        distance.formattedDistance()
     }
 }
 

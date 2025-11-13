@@ -72,6 +72,21 @@ struct Milestone: Codable, Identifiable {
         self.isCompleted = isCompleted
         self.completedAt = completedAt
         self.workouts = workouts
+
+        // Validate state consistency
+        assert(
+            (isCompleted && completedAt != nil) || (!isCompleted && completedAt == nil),
+            "Milestone state inconsistency: isCompleted=\(isCompleted) but completedAt=\(String(describing: completedAt))"
+        )
+    }
+
+    var isValid: Bool {
+        // Ensure consistency between isCompleted and completedAt
+        if isCompleted {
+            return completedAt != nil
+        } else {
+            return completedAt == nil
+        }
     }
 }
 
