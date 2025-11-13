@@ -12,16 +12,8 @@ final class WorkoutAnalysisService {
 
     private let chatGPTService = ChatGPTService.shared
 
-    private init() {}
-
-    /// ワークアウトデータを分析して振り返りを生成
-    func analyzeWorkout(
-        session: WorkoutSession,
-        userGoal: RunningGoal?,
-        currentMilestone: Milestone?,
-        recentSessions: [WorkoutSession]
-    ) async throws -> WorkoutReflection {
-        let systemPrompt = """
+    // System prompt for workout analysis (defined once to avoid repeated string concatenation)
+    private static let systemPrompt = """
         あなたはランニング初心者をサポートするAIコーチです。
         ユーザーのワークアウトデータを分析して、励ましの言葉と具体的なアドバイスを提供してください。
 
@@ -50,6 +42,16 @@ final class WorkoutAnalysisService {
         - 明確な達成条件が不明な場合や、まだ達成していない場合は isAchieved: false
         """
 
+    private init() {}
+
+    /// ワークアウトデータを分析して振り返りを生成
+    func analyzeWorkout(
+        session: WorkoutSession,
+        userGoal: RunningGoal?,
+        currentMilestone: Milestone?,
+        recentSessions: [WorkoutSession]
+    ) async throws -> WorkoutReflection {
+
         let userPrompt = buildUserPrompt(
             session: session,
             userGoal: userGoal,
@@ -58,7 +60,7 @@ final class WorkoutAnalysisService {
         )
 
         let jsonResponse = try await chatGPTService.generateText(
-            systemPrompt: systemPrompt,
+            systemPrompt: Self.systemPrompt,
             userPrompt: userPrompt,
             useJSON: true
         )
