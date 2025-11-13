@@ -8,7 +8,7 @@
 import Foundation
 // import Supabase  // Uncomment after adding supabase-swift via SPM
 
-class SupabaseService {
+final class SupabaseService {
     static let shared = SupabaseService()
 
     // Uncomment after adding supabase-swift via SPM
@@ -41,15 +41,17 @@ class SupabaseService {
 
     // MARK: - Database Operations
 
-    func saveUserProfile(userId: String, profile: [String: Any]) async throws {
+    func saveUserProfile(_ profile: UserProfile) async throws {
         // Implementation after adding Supabase package
+        // let encoder = JSONEncoder()
+        // let data = try encoder.encode(profile)
         // try await client.database
         //     .from("user_profiles")
-        //     .insert(profile)
+        //     .insert(data)
         //     .execute()
     }
 
-    func getUserProfile(userId: String) async throws -> [String: Any]? {
+    func getUserProfile(userId: String) async throws -> UserProfile? {
         // Implementation after adding Supabase package
         // let response = try await client.database
         //     .from("user_profiles")
@@ -57,26 +59,30 @@ class SupabaseService {
         //     .eq("user_id", value: userId)
         //     .single()
         //     .execute()
-        // return response.data as? [String: Any]
+        // let decoder = JSONDecoder()
+        // return try decoder.decode(UserProfile.self, from: response.data)
         return nil
     }
 
-    func saveWorkoutSession(session: [String: Any]) async throws {
+    func saveWorkoutSession(_ session: WorkoutSession) async throws {
         // Implementation after adding Supabase package
+        // let encoder = JSONEncoder()
+        // let data = try encoder.encode(session)
         // try await client.database
         //     .from("workout_sessions")
-        //     .insert(session)
+        //     .insert(data)
         //     .execute()
     }
 
-    func getWorkoutSessions(userId: String) async throws -> [[String: Any]] {
+    func getWorkoutSessions(userId: String) async throws -> [WorkoutSession] {
         // Implementation after adding Supabase package
         // let response = try await client.database
         //     .from("workout_sessions")
         //     .select()
         //     .eq("user_id", value: userId)
         //     .execute()
-        // return response.data as? [[String: Any]] ?? []
+        // let decoder = JSONDecoder()
+        // return try decoder.decode([WorkoutSession].self, from: response.data)
         return []
     }
 }
