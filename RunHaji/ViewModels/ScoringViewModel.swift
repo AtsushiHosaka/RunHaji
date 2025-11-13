@@ -135,9 +135,7 @@ class ScoringViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            // Get recent sessions for context (also populates recentWorkoutSessions)
-            await loadWeeklyStats()
-
+            // Use recentWorkoutSessions (already populated by calculateWeeklyProgress -> loadWeeklyStats)
             // Analyze workout with ChatGPT
             let reflection = try await analysisService.analyzeWorkout(
                 session: session,
@@ -148,7 +146,8 @@ class ScoringViewModel: ObservableObject {
 
             workoutReflection = reflection
         } catch {
-            errorMessage = "振り返りの生成に失敗しました: \(error.localizedDescription)"
+            print("Workout analysis failed: \(error.localizedDescription)")
+            errorMessage = "振り返りの生成に失敗しました。ネットワーク接続を確認してください。"
         }
 
         isAnalyzing = false
@@ -247,6 +246,8 @@ class ScoringViewModel: ObservableObject {
             UserDefaults.standard.set(data, forKey: "workout_reflections")
         } catch {
             print("Failed to save reflection: \(error)")
+            // Continue anyway - workout session is still saved even if reflection save fails
+            // Don't block the user from completing the save operation
         }
 
         // In a real implementation, also save to Supabase
@@ -256,6 +257,15 @@ class ScoringViewModel: ObservableObject {
         workoutSession = session
         isSaving = false
         showSuccessMessage = true
+
+        // Notify HomeViewModel to update milestone if achieved
+        if reflection.milestoneProgress?.isAchieved == true {
+            NotificationCenter.default.post(
+                name: NSNotification.Name("WorkoutReflectionSaved"),
+                object: nil,
+                userInfo: ["reflection": reflection]
+            )
+        }
 
         // Auto-hide success message after 2 seconds
         try? await Task.sleep(nanoseconds: 2_000_000_000)
