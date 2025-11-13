@@ -87,6 +87,9 @@ struct ScoringView: View {
                     // Save Button
                     if viewModel.workoutReflection != nil {
                         saveButton
+                    } else if !viewModel.isAnalyzing && viewModel.errorMessage != nil {
+                        // Analysis failed, show fallback save option
+                        fallbackSaveSection
                     }
                 }
                 .padding()
@@ -411,6 +414,55 @@ struct ScoringView: View {
         .disabled(viewModel.isSaving)
     }
 
+    private var fallbackSaveSection: some View {
+        VStack(spacing: 16) {
+            VStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.largeTitle)
+                    .foregroundColor(.orange)
+
+                Text("AI分析に失敗しました")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
+                Text("基本情報のみでワークアウトを保存できます")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.orange.opacity(0.1))
+            )
+
+            Button {
+                Task {
+                    await viewModel.saveWorkoutWithFallback()
+                    // Wait a moment before dismissing to show success message
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    dismiss()
+                }
+            } label: {
+                HStack {
+                    if viewModel.isSaving {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text("分析なしで保存")
+                            .fontWeight(.semibold)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.orange)
+                .foregroundColor(.white)
+                .cornerRadius(12)
+            }
+            .disabled(viewModel.isSaving)
+        }
+    }
+
     private var successOverlay: some View {
         VStack {
             Spacer()
@@ -470,18 +522,8 @@ struct ScoringView: View {
     }
 
     private func rpeColor(_ rpe: Int) -> Color {
-        switch rpe {
-        case 1...3:
-            return .green
-        case 4...6:
-            return .yellow
-        case 7...8:
-            return .orange
-        case 9...10:
-            return .red
-        default:
-            return .gray
-        }
+        guard let rpeModel = RPE(value: rpe) else { return .gray }
+        return rpeModel.color
     }
 
     private func rpeLevel(_ rpe: Int) -> String {
