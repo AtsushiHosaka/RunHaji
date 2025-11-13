@@ -7,6 +7,8 @@
 
 import Foundation
 import SwiftUI
+import Combine
+import HealthKit
 
 @MainActor
 class ScoringViewModel: ObservableObject {
@@ -59,7 +61,7 @@ class ScoringViewModel: ObservableObject {
         await loadWeeklyStats()
 
         // Calculate progress based on user's goal
-        if let frequency = idealFrequency {
+        if let frequency = idealFrequency, frequency > 0 {
             progressPercentage = min(Double(weeklyWorkouts) / Double(frequency), 1.0) * 100
         }
     }
@@ -71,6 +73,8 @@ class ScoringViewModel: ObservableObject {
         guard let weekStart = calendar.date(byAdding: .day, value: -7, to: now) else { return }
 
         // Load recent workouts
+        // Note: This loads up to 20 workouts. If user has more than 20 workouts in the past week,
+        // some may not be included in the weekly stats calculation.
         await healthKitManager.loadWorkouts()
 
         // Calculate weekly totals
@@ -111,6 +115,12 @@ class ScoringViewModel: ObservableObject {
             return
         }
 
+        // Validate RPE value
+        guard RPE(value: selectedRPE) != nil else {
+            errorMessage = "無効なRPE値です"
+            return
+        }
+
         isSaving = true
         errorMessage = nil
 
@@ -137,7 +147,9 @@ class ScoringViewModel: ObservableObject {
 
         // Auto-hide success message after 2 seconds
         try? await Task.sleep(nanoseconds: 2_000_000_000)
-        showSuccessMessage = false
+        if !Task.isCancelled {
+            showSuccessMessage = false
+        }
     }
 
     // MARK: - Formatting Helpers
@@ -151,14 +163,15 @@ class ScoringViewModel: ObservableObject {
     }
 
     func formatPace(_ distance: Double, _ duration: TimeInterval) -> String {
-        let pace = healthKitManager.healthKitService.calculatePace(
-            distance: distance,
-            duration: duration
-        )
+        let pace = healthKitManager.getPace(for: distance, duration: duration)
         return healthKitManager.formatPace(pace)
     }
 
     func formatWeeklyDistance() -> String {
         return String(format: "%.1f km", weeklyDistance / 1000.0)
+    }
+
+    func formatCalories(_ calories: Double) -> String {
+        return String(format: "%.0f kcal", calories)
     }
 }
