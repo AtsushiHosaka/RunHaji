@@ -12,9 +12,6 @@ import Combine
 @MainActor
 class RunningViewModel: NSObject, ObservableObject {
     @Published var isRunning = false
-    @Published var distance: Double = 0.0 // meters
-    @Published var duration: TimeInterval = 0.0 // seconds
-    @Published var pace: Double? = nil // min/km
     @Published var showingEndWorkoutAlert = false
     @Published var errorMessage: String?
 
@@ -42,27 +39,21 @@ class RunningViewModel: NSObject, ObservableObject {
 
     private func observeHealthKitManager() {
         // Observe HealthKitManager's published properties
-        healthKitManager.$currentDistance
-            .assign(to: &$distance)
-
-        healthKitManager.$currentDuration
-            .assign(to: &$duration)
-
-        healthKitManager.$currentPace
-            .assign(to: &$pace)
-
         healthKitManager.$isWorkoutActive
             .assign(to: &$isRunning)
+    }
+
+    // MARK: - Authorization
+
+    func requestAuthorization() async {
+        await healthKitManager.requestAuthorization()
     }
 
     // MARK: - Workout Control
 
     func startWorkout() {
         // Request location authorization if needed
-        let authStatus = locationManager.authorizationStatus
-        if authStatus == .notDetermined {
-            locationManager.requestWhenInUseAuthorization()
-        }
+        locationManager.requestWhenInUseAuthorization()
 
         // Start workout tracking
         healthKitManager.startWorkout()
@@ -70,8 +61,6 @@ class RunningViewModel: NSObject, ObservableObject {
         // Start location updates
         locationManager.startUpdatingLocation()
         lastLocation = nil
-
-        isRunning = true
     }
 
     func requestEndWorkout() {
@@ -85,7 +74,6 @@ class RunningViewModel: NSObject, ObservableObject {
         // End workout in HealthKit
         await healthKitManager.endWorkout(calories: 0.0)
 
-        isRunning = false
         lastLocation = nil
         showingEndWorkoutAlert = false
     }
@@ -97,11 +85,12 @@ class RunningViewModel: NSObject, ObservableObject {
     // MARK: - Formatting Helpers
 
     func formattedDistance() -> String {
-        let km = distance / 1000.0
+        let km = healthKitManager.currentDistance / 1000.0
         return String(format: "%.2f", km)
     }
 
     func formattedDuration() -> String {
+        let duration = healthKitManager.currentDuration
         let hours = Int(duration) / 3600
         let minutes = (Int(duration) % 3600) / 60
         let seconds = Int(duration) % 60
@@ -114,7 +103,7 @@ class RunningViewModel: NSObject, ObservableObject {
     }
 
     func formattedPace() -> String {
-        guard let pace = pace else {
+        guard let pace = healthKitManager.currentPace else {
             return "--:--"
         }
         let minutes = Int(pace)
@@ -134,10 +123,10 @@ extension RunningViewModel: CLLocationManagerDelegate {
             if let lastLocation = lastLocation {
                 let distanceIncrement = location.distance(from: lastLocation)
 
-                // Only update if the distance increment is reasonable (< 100m)
+                // Only update if the distance increment is reasonable (< 100m) and GPS accuracy is good (< 50m)
                 // This helps filter out GPS inaccuracies
-                if distanceIncrement > 0 && distanceIncrement < 100 {
-                    let newDistance = distance + distanceIncrement
+                if distanceIncrement > 0 && distanceIncrement < 100 && location.horizontalAccuracy < 50 {
+                    let newDistance = healthKitManager.currentDistance + distanceIncrement
                     healthKitManager.updateDistance(newDistance)
                 }
             }
