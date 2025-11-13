@@ -115,7 +115,7 @@ final class WorkoutAnalysisService {
             let estimatedRPE: Int
             let reflection: String
             let suggestions: String
-            let milestoneProgress: MilestoneProgressResponse
+            let milestoneProgress: MilestoneProgressResponse?
 
             struct MilestoneProgressResponse: Codable {
                 let isAchieved: Bool
@@ -131,11 +131,13 @@ final class WorkoutAnalysisService {
             throw ChatGPTError.decodingError("Invalid RPE value: \(response.estimatedRPE)")
         }
 
-        let milestoneProgress = MilestoneProgress(
-            milestoneId: milestoneId,
-            isAchieved: response.milestoneProgress.isAchieved,
-            achievementMessage: response.milestoneProgress.achievementMessage
-        )
+        let milestoneProgress: MilestoneProgress? = response.milestoneProgress.map { progressResponse in
+            MilestoneProgress(
+                milestoneId: milestoneId,
+                isAchieved: progressResponse.isAchieved,
+                achievementMessage: progressResponse.achievementMessage
+            )
+        }
 
         return WorkoutReflection(
             workoutSessionId: workoutSessionId,
