@@ -93,7 +93,6 @@ struct Milestone: Codable, Identifiable {
 struct UpcomingWorkout: Codable, Identifiable {
     let id: UUID
     var title: String
-    var scheduledDate: Date
     var estimatedDuration: TimeInterval
     var targetDistance: Double?
     var notes: String?
@@ -101,14 +100,12 @@ struct UpcomingWorkout: Codable, Identifiable {
     init(
         id: UUID = UUID(),
         title: String,
-        scheduledDate: Date,
         estimatedDuration: TimeInterval,
         targetDistance: Double? = nil,
         notes: String? = nil
     ) {
         self.id = id
         self.title = title
-        self.scheduledDate = scheduledDate
         self.estimatedDuration = estimatedDuration
         self.targetDistance = targetDistance
         self.notes = notes
