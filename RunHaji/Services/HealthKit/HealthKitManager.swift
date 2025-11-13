@@ -135,6 +135,10 @@ class HealthKitManager: ObservableObject {
         return healthKitService.calculatePace(distance: distance, duration: duration)
     }
 
+    func getPace(for distance: Double, duration: TimeInterval) -> Double? {
+        return healthKitService.calculatePace(distance: distance, duration: duration)
+    }
+
     func formatPace(_ pace: Double?) -> String {
         return healthKitService.formatPace(pace)
     }
