@@ -171,14 +171,8 @@ struct UpcomingWorkoutCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(workout.title)
-                        .font(.headline)
-
-                    Text(formattedDate(workout.scheduledDate))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                Text(workout.title)
+                    .font(.headline)
 
                 Spacer()
 
@@ -215,10 +209,6 @@ struct UpcomingWorkoutCard: View {
         .background(Color(.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-
-    private func formattedDate(_ date: Date) -> String {
-        DateFormatter.japaneseMediumWithTime.string(from: date)
     }
 
     private func formattedDuration(_ duration: TimeInterval) -> String {
