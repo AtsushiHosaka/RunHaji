@@ -55,7 +55,7 @@ final class WorkoutAnalysisService {
             useJSON: true
         )
 
-        return try parseReflectionResponse(jsonResponse, workoutSessionId: session.id)
+        return try parseReflectionResponse(jsonResponse, workoutSessionId: session.id, milestoneId: currentMilestone?.id)
     }
 
     // MARK: - Private Methods
@@ -98,7 +98,7 @@ final class WorkoutAnalysisService {
         return prompt
     }
 
-    private func parseReflectionResponse(_ jsonString: String, workoutSessionId: UUID) throws -> WorkoutReflection {
+    private func parseReflectionResponse(_ jsonString: String, workoutSessionId: UUID, milestoneId: UUID?) throws -> WorkoutReflection {
         guard let data = jsonString.data(using: .utf8) else {
             throw ChatGPTError.decodingError("Invalid UTF-8 string")
         }
@@ -124,6 +124,7 @@ final class WorkoutAnalysisService {
         }
 
         let milestoneProgress = MilestoneProgress(
+            milestoneId: milestoneId,
             isAchieved: response.milestoneProgress.isAchieved,
             achievementMessage: response.milestoneProgress.achievementMessage
         )

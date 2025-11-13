@@ -38,7 +38,9 @@ final class ChatGPTService {
 
     /// ChatGPT APIを呼び出してテキストを生成
     func generateText(systemPrompt: String, userPrompt: String, useJSON: Bool = false) async throws -> String {
-        let url = URL(string: ChatGPTConfig.apiEndpoint)!
+        guard let url = URL(string: ChatGPTConfig.apiEndpoint) else {
+            throw ChatGPTError.invalidResponse
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("Bearer \(ChatGPTConfig.apiKey)", forHTTPHeaderField: "Authorization")
@@ -65,7 +67,11 @@ final class ChatGPTService {
         }
 
         guard httpResponse.statusCode == 200 else {
-            throw ChatGPTError.apiError(statusCode: httpResponse.statusCode, message: String(data: data, encoding: .utf8) ?? "Unknown error")
+            // Log the raw response for debugging
+            if let errorResponse = String(data: data, encoding: .utf8) {
+                print("ChatGPT API error: statusCode=\(httpResponse.statusCode), response=\(errorResponse)")
+            }
+            throw ChatGPTError.apiError(statusCode: httpResponse.statusCode, message: "APIエラーが発生しました")
         }
 
         let chatResponse = try JSONDecoder().decode(ChatResponse.self, from: data)

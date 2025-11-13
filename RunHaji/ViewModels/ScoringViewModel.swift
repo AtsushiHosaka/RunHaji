@@ -124,7 +124,7 @@ class ScoringViewModel: ObservableObject {
             // Get recent sessions for context
             await loadWeeklyStats()
             let recentSessions = healthKitManager.workouts
-                .filter { $0.startDate >= Calendar.current.date(byAdding: .day, value: -7, to: Date())! }
+                .filter { $0.startDate >= (Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()) }
                 .map { workout in
                     WorkoutSession(
                         userId: userId,
@@ -183,7 +183,28 @@ class ScoringViewModel: ObservableObject {
             createdAt: session.createdAt
         )
 
-        // In a real implementation, save to Supabase
+        // Save reflection data to UserDefaults
+        do {
+            let encoder = JSONEncoder()
+
+            // Load existing reflections
+            var reflections: [WorkoutReflection] = []
+            if let data = UserDefaults.standard.data(forKey: "workout_reflections"),
+               let existingReflections = try? JSONDecoder().decode([WorkoutReflection].self, from: data) {
+                reflections = existingReflections
+            }
+
+            // Add new reflection
+            reflections.append(reflection)
+
+            // Save back to UserDefaults
+            let data = try encoder.encode(reflections)
+            UserDefaults.standard.set(data, forKey: "workout_reflections")
+        } catch {
+            print("Failed to save reflection: \(error)")
+        }
+
+        // In a real implementation, also save to Supabase
         // For now, just simulate a save
         try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
 

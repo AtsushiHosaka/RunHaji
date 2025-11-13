@@ -214,8 +214,15 @@ class HomeViewModel: ObservableObject {
         guard let milestoneProgress = reflection.milestoneProgress else { return }
         guard milestoneProgress.isAchieved else { return }
 
-        // Find the first uncompleted milestone and mark it as completed
-        if let index = roadmap.milestones.firstIndex(where: { !$0.isCompleted }) {
+        // Find the milestone by ID if available, otherwise use first uncompleted
+        var index: Int?
+        if let milestoneId = milestoneProgress.milestoneId {
+            index = roadmap.milestones.firstIndex(where: { $0.id == milestoneId })
+        } else {
+            index = roadmap.milestones.firstIndex(where: { !$0.isCompleted })
+        }
+
+        if let index = index {
             roadmap.milestones[index].isCompleted = true
             roadmap.milestones[index].completedAt = Date()
             self.roadmap = roadmap
