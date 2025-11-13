@@ -8,13 +8,10 @@
 import SwiftUI
 
 struct RunningView: View {
-    @StateObject private var healthKitManager = HealthKitManager()
     @StateObject private var viewModel: RunningViewModel
 
-    init() {
-        let manager = HealthKitManager()
-        _healthKitManager = StateObject(wrappedValue: manager)
-        _viewModel = StateObject(wrappedValue: RunningViewModel(healthKitManager: manager))
+    init(healthKitManager: HealthKitManager = HealthKitManager()) {
+        _viewModel = StateObject(wrappedValue: RunningViewModel(healthKitManager: healthKitManager))
     }
 
     var body: some View {
@@ -108,7 +105,10 @@ struct RunningView: View {
         } message: {
             Text("ワークアウトを終了すると、データが保存されます。")
         }
-        .alert("エラー", isPresented: .constant(viewModel.errorMessage != nil)) {
+        .alert("エラー", isPresented: Binding(
+            get: { viewModel.errorMessage != nil },
+            set: { if !$0 { viewModel.errorMessage = nil } }
+        )) {
             Button("OK") {
                 viewModel.errorMessage = nil
             }
@@ -118,7 +118,7 @@ struct RunningView: View {
             }
         }
         .task {
-            await healthKitManager.requestAuthorization()
+            await viewModel.requestAuthorization()
         }
     }
 }
