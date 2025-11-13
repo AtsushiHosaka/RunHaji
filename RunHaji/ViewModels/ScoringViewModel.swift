@@ -12,8 +12,9 @@ import HealthKit
 
 @MainActor
 class ScoringViewModel: ObservableObject {
-    @Published var selectedRPE: Int = 5
     @Published var workoutSession: WorkoutSession?
+    @Published var workoutReflection: WorkoutReflection?
+    @Published var isAnalyzing: Bool = false
     @Published var isSaving: Bool = false
     @Published var showSuccessMessage: Bool = false
     @Published var errorMessage: String?
@@ -25,6 +26,7 @@ class ScoringViewModel: ObservableObject {
 
     private let healthKitManager: HealthKitManager
     private let userId: String
+    private let analysisService = WorkoutAnalysisService.shared
 
     init(healthKitManager: HealthKitManager, userId: String) {
         self.healthKitManager = healthKitManager
@@ -106,25 +108,69 @@ class ScoringViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Workout Analysis
+
+    /// ワークアウトを分析して振り返りを生成
+    func analyzeWorkout(userGoal: RunningGoal?, currentMilestone: Milestone?) async {
+        guard let session = workoutSession else {
+            errorMessage = "ワークアウトデータが見つかりません"
+            return
+        }
+
+        isAnalyzing = true
+        errorMessage = nil
+
+        do {
+            // Get recent sessions for context
+            await loadWeeklyStats()
+            let recentSessions = healthKitManager.workouts
+                .filter { $0.startDate >= Calendar.current.date(byAdding: .day, value: -7, to: Date())! }
+                .map { workout in
+                    WorkoutSession(
+                        userId: userId,
+                        startDate: workout.startDate,
+                        endDate: workout.endDate,
+                        duration: workout.duration,
+                        distance: healthKitManager.getDistance(for: workout),
+                        calories: workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0,
+                        rpe: nil
+                    )
+                }
+
+            // Analyze workout with ChatGPT
+            let reflection = try await analysisService.analyzeWorkout(
+                session: session,
+                userGoal: userGoal,
+                currentMilestone: currentMilestone,
+                recentSessions: recentSessions
+            )
+
+            workoutReflection = reflection
+        } catch {
+            errorMessage = "振り返りの生成に失敗しました: \(error.localizedDescription)"
+        }
+
+        isAnalyzing = false
+    }
+
     // MARK: - Save Workout
 
-    /// RPEを含めてワークアウトを保存
-    func saveWorkoutWithRPE() async {
+    /// 振り返りを含めてワークアウトを保存
+    func saveWorkoutWithReflection() async {
         guard var session = workoutSession else {
             errorMessage = "ワークアウトデータが見つかりません"
             return
         }
 
-        // Validate RPE value
-        guard RPE(value: selectedRPE) != nil else {
-            errorMessage = "無効なRPE値です"
+        guard let reflection = workoutReflection else {
+            errorMessage = "振り返りが生成されていません"
             return
         }
 
         isSaving = true
         errorMessage = nil
 
-        // Update session with RPE
+        // Update session with estimated RPE
         session = WorkoutSession(
             id: session.id,
             userId: session.userId,
@@ -133,7 +179,7 @@ class ScoringViewModel: ObservableObject {
             duration: session.duration,
             distance: session.distance,
             calories: session.calories,
-            rpe: selectedRPE,
+            rpe: reflection.estimatedRPE,
             createdAt: session.createdAt
         )
 

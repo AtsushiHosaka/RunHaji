@@ -207,4 +207,19 @@ class HomeViewModel: ObservableObject {
         try? await Task.sleep(nanoseconds: 500_000_000)
         isLoading = false
     }
+
+    /// ワークアウト振り返りを受け取ってマイルストーンを自動更新
+    func updateMilestoneFromReflection(_ reflection: WorkoutReflection) {
+        guard var roadmap = roadmap else { return }
+        guard let milestoneProgress = reflection.milestoneProgress else { return }
+        guard milestoneProgress.isAchieved else { return }
+
+        // Find the first uncompleted milestone and mark it as completed
+        if let index = roadmap.milestones.firstIndex(where: { !$0.isCompleted }) {
+            roadmap.milestones[index].isCompleted = true
+            roadmap.milestones[index].completedAt = Date()
+            self.roadmap = roadmap
+            saveRoadmap()
+        }
+    }
 }
