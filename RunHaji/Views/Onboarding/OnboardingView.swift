@@ -10,6 +10,8 @@ import SwiftUI
 struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
     @Binding var isOnboardingComplete: Bool
+    @State private var showError = false
+    @State private var errorMessage = ""
 
     var body: some View {
         VStack(spacing: 0) {
@@ -60,8 +62,13 @@ struct OnboardingView: View {
                 } else {
                     Button("完了") {
                         Task {
-                            await viewModel.completeOnboarding()
-                            isOnboardingComplete = true
+                            do {
+                                try await viewModel.completeOnboarding()
+                                isOnboardingComplete = true
+                            } catch {
+                                errorMessage = "プロフィールの保存に失敗しました: \(error.localizedDescription)"
+                                showError = true
+                            }
                         }
                     }
                     .buttonStyle(.borderedProminent)
@@ -71,6 +78,11 @@ struct OnboardingView: View {
             .padding()
         }
         .interactiveDismissDisabled()
+        .alert("エラー", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
     }
 }
 

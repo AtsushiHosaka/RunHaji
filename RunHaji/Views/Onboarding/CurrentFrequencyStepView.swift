@@ -24,6 +24,8 @@ struct CurrentFrequencyStepView: View {
 
                 Stepper("", value: $viewModel.currentFrequency, in: 0...7)
                     .labelsHidden()
+                    .accessibilityLabel("現在の運動頻度")
+                    .accessibilityValue("週\(viewModel.currentFrequency)回")
                     .padding(.horizontal, 50)
             }
 

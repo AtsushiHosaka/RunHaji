@@ -24,11 +24,11 @@ class OnboardingViewModel: ObservableObject {
     let totalSteps = 5
 
     var progress: Double {
-        return Double(currentStep) / Double(totalSteps)
+        return Double(currentStep + 1) / Double(totalSteps)
     }
 
     func nextStep() {
-        if currentStep < totalSteps {
+        if currentStep < totalSteps - 1 {
             currentStep += 1
         }
     }
@@ -42,7 +42,12 @@ class OnboardingViewModel: ObservableObject {
     func canProceed() -> Bool {
         switch currentStep {
         case 0: // Age, Height, Weight
-            return !age.isEmpty && !height.isEmpty && !weight.isEmpty
+            guard let ageVal = Int(age), ageVal > 0,
+                  let heightVal = Double(height), heightVal > 0,
+                  let weightVal = Double(weight), weightVal > 0 else {
+                return false
+            }
+            return true
         case 1: // Available Time
             return availableTime > 0
         case 2: // Frequency
@@ -56,12 +61,12 @@ class OnboardingViewModel: ObservableObject {
         }
     }
 
-    func completeOnboarding() async {
+    func completeOnboarding() async throws {
         // Create user profile
         let profile = UserProfile(
-            age: Int(age),
-            height: Double(height),
-            weight: Double(weight),
+            age: Int(age) ?? 0,
+            height: Double(height) ?? 0.0,
+            weight: Double(weight) ?? 0.0,
             availableTimePerWeek: availableTime,
             idealFrequency: idealFrequency,
             currentFrequency: currentFrequency,
@@ -71,9 +76,9 @@ class OnboardingViewModel: ObservableObject {
         let user = User(profile: profile)
 
         // Save to UserDefaults (temporary - will be saved to Supabase later)
-        if let encoded = try? JSONEncoder().encode(user) {
-            UserDefaults.standard.set(encoded, forKey: "user_profile")
-        }
+        let encoder = JSONEncoder()
+        let encoded = try encoder.encode(user)
+        UserDefaults.standard.set(encoded, forKey: "user_profile")
 
         // TODO: Save to Supabase
         // try await SupabaseService.shared.saveUserProfile(...)

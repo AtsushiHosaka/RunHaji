@@ -24,6 +24,8 @@ struct IdealFrequencyStepView: View {
 
                 Stepper("", value: $viewModel.idealFrequency, in: 1...7)
                     .labelsHidden()
+                    .accessibilityLabel("理想の運動頻度")
+                    .accessibilityValue("週\(viewModel.idealFrequency)回")
                     .padding(.horizontal, 50)
             }
 

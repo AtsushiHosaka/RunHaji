@@ -24,6 +24,8 @@ struct AvailableTimeStepView: View {
 
                 Stepper("", value: $viewModel.availableTime, in: 1...20)
                     .labelsHidden()
+                    .accessibilityLabel("週あたりの利用可能時間")
+                    .accessibilityValue("\(viewModel.availableTime)時間")
                     .padding(.horizontal, 50)
             }
 
