@@ -25,6 +25,21 @@ class HomeViewModel: ObservableObject {
         loadRoadmap()
         loadUpcomingWorkouts()
         loadRecentSessions()
+
+        // Listen for workout reflection saved notifications
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("WorkoutReflectionSaved"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            if let reflection = notification.userInfo?["reflection"] as? WorkoutReflection {
+                self?.updateMilestoneFromReflection(reflection)
+            }
+        }
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     var progressPercentage: Double {

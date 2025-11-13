@@ -501,6 +501,9 @@ struct ScoringView: View {
                 idealFrequency: idealFrequency
             )
 
+            // Only analyze if not already done
+            guard viewModel.workoutReflection == nil && !viewModel.isAnalyzing else { return }
+
             // Get current milestone from UserDefaults
             let currentMilestone: Milestone? = loadCurrentMilestone()
 
