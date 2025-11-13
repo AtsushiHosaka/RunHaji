@@ -12,18 +12,21 @@ import Combine
 @MainActor
 class HealthKitManager: ObservableObject {
     @Published var isAuthorized = false
-    @Published var currentWorkout: HKWorkout?
     @Published var workouts: [HKWorkout] = []
 
     // Current workout tracking
     @Published var isWorkoutActive = false
     @Published var currentDistance: Double = 0.0 // meters
     @Published var currentDuration: TimeInterval = 0.0 // seconds
-    @Published var currentPace: Double = 0.0 // min/km
+    @Published var currentPace: Double? = nil // min/km
 
     private let healthKitService = HealthKitService.shared
     private var workoutStartDate: Date?
     private var timer: Timer?
+
+    deinit {
+        timer?.invalidate()
+    }
 
     // MARK: - Authorization
 
@@ -46,16 +49,18 @@ class HealthKitManager: ObservableObject {
         isWorkoutActive = true
         currentDistance = 0.0
         currentDuration = 0.0
-        currentPace = 0.0
+        currentPace = nil
 
         // Start timer to update duration
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+        let newTimer = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard let self = self, let startDate = self.workoutStartDate else { return }
                 self.currentDuration = Date().timeIntervalSince(startDate)
                 self.updatePace()
             }
         }
+        timer = newTimer
+        RunLoop.main.add(newTimer, forMode: .common)
     }
 
     func updateDistance(_ distance: Double) {
@@ -124,13 +129,13 @@ class HealthKitManager: ObservableObject {
         return healthKitService.getCalories(for: workout)
     }
 
-    func getPace(for workout: HKWorkout) -> Double {
+    func getPace(for workout: HKWorkout) -> Double? {
         let distance = getDistance(for: workout)
         let duration = getDuration(for: workout)
         return healthKitService.calculatePace(distance: distance, duration: duration)
     }
 
-    func formatPace(_ pace: Double) -> String {
+    func formatPace(_ pace: Double?) -> String {
         return healthKitService.formatPace(pace)
     }
 

@@ -40,19 +40,9 @@ class HealthKitService {
 
     // MARK: - Workout Management
 
-    func startWorkout(activityType: HKWorkoutActivityType = .running) -> HKWorkoutSession? {
-        let configuration = HKWorkoutConfiguration()
-        configuration.activityType = activityType
-        configuration.locationType = .outdoor
-
-        do {
-            let session = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
-            return session
-        } catch {
-            print("Failed to create workout session: \(error)")
-            return nil
-        }
-    }
+    // Note: HKWorkoutSession is not used in current implementation.
+    // We use simple start/end time tracking instead.
+    // This method is kept for future live workout session support.
 
     func saveWorkout(
         activityType: HKWorkoutActivityType = .running,
@@ -80,17 +70,6 @@ class HealthKitService {
     func getWorkouts(limit: Int = 10) async throws -> [HKWorkout] {
         let workoutType = HKObjectType.workoutType()
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-
-        let query = HKSampleQuery(
-            sampleType: workoutType,
-            predicate: nil,
-            limit: limit,
-            sortDescriptors: [sortDescriptor]
-        ) { _, samples, error in
-            if let error = error {
-                print("Error fetching workouts: \(error)")
-            }
-        }
 
         return try await withCheckedThrowingContinuation { continuation in
             let query = HKSampleQuery(
@@ -132,15 +111,18 @@ class HealthKitService {
 
     // MARK: - Pace Calculation
 
-    func calculatePace(distance: Double, duration: TimeInterval) -> Double {
+    func calculatePace(distance: Double, duration: TimeInterval) -> Double? {
         // Pace in minutes per kilometer
-        guard distance > 0 else { return 0.0 }
+        guard distance > 0 else { return nil }
         let distanceInKm = distance / 1000.0
         let durationInMinutes = duration / 60.0
         return durationInMinutes / distanceInKm
     }
 
-    func formatPace(_ pace: Double) -> String {
+    func formatPace(_ pace: Double?) -> String {
+        guard let pace = pace, pace.isFinite else {
+            return "--:--/km"
+        }
         let minutes = Int(pace)
         let seconds = Int((pace - Double(minutes)) * 60)
         return String(format: "%d:%02d/km", minutes, seconds)
@@ -149,12 +131,12 @@ class HealthKitService {
 
 // MARK: - Errors
 
-enum HealthKitError: Error {
+enum HealthKitError: Error, LocalizedError {
     case notAvailable
     case authorizationDenied
     case dataNotFound
 
-    var localizedDescription: String {
+    var errorDescription: String? {
         switch self {
         case .notAvailable:
             return "HealthKitはこのデバイスで利用できません"
