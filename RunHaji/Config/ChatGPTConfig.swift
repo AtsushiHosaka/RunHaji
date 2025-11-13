@@ -18,5 +18,5 @@ struct ChatGPTConfig {
     }()
 
     static let apiEndpoint = "https://api.openai.com/v1/chat/completions"
-    static let model = "gpt-4o-mini" // Cost-effective model for workout analysis
+    static let model = "gpt-5-nano" // Ultra cost-effective nano model for workout analysis
 }
