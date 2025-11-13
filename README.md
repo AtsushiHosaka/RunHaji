@@ -23,7 +23,7 @@
    <key>SUPABASE_ANON_KEY</key>
    <string>あなたのSupabase Anon Key</string>
    <key>OPENAI_API_KEY</key>
-   <string>あなたのOpenAI API Key</string>
+   <string>あなたのOpenAI APIキー</string>
    ```
 3. **重要**: `Info.plist`は`.gitignore`で除外されています。GitHubにpushしないでください。
 
