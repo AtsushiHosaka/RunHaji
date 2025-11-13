@@ -27,6 +27,7 @@ class ScoringViewModel: ObservableObject {
     private let healthKitManager: HealthKitManager
     private let userId: String
     private let analysisService = WorkoutAnalysisService.shared
+    private var recentWorkoutSessions: [WorkoutSession] = []
 
     init(healthKitManager: HealthKitManager, userId: String) {
         self.healthKitManager = healthKitManager
@@ -79,14 +80,27 @@ class ScoringViewModel: ObservableObject {
         // some may not be included in the weekly stats calculation.
         await healthKitManager.loadWorkouts()
 
-        // Calculate weekly totals
+        // Calculate weekly totals and build recent workout sessions
         weeklyDistance = 0.0
         weeklyWorkouts = 0
+        recentWorkoutSessions = []
 
         for workout in healthKitManager.workouts {
             if workout.startDate >= weekStart {
                 weeklyDistance += healthKitManager.getDistance(for: workout)
                 weeklyWorkouts += 1
+
+                // Build WorkoutSession for AI analysis
+                let session = WorkoutSession(
+                    userId: userId,
+                    startDate: workout.startDate,
+                    endDate: workout.endDate,
+                    duration: workout.duration,
+                    distance: healthKitManager.getDistance(for: workout),
+                    calories: workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0,
+                    rpe: nil
+                )
+                recentWorkoutSessions.append(session)
             }
         }
     }
@@ -121,28 +135,15 @@ class ScoringViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            // Get recent sessions for context
+            // Get recent sessions for context (also populates recentWorkoutSessions)
             await loadWeeklyStats()
-            let recentSessions = healthKitManager.workouts
-                .filter { $0.startDate >= (Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()) }
-                .map { workout in
-                    WorkoutSession(
-                        userId: userId,
-                        startDate: workout.startDate,
-                        endDate: workout.endDate,
-                        duration: workout.duration,
-                        distance: healthKitManager.getDistance(for: workout),
-                        calories: workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0,
-                        rpe: nil
-                    )
-                }
 
             // Analyze workout with ChatGPT
             let reflection = try await analysisService.analyzeWorkout(
                 session: session,
                 userGoal: userGoal,
                 currentMilestone: currentMilestone,
-                recentSessions: recentSessions
+                recentSessions: recentWorkoutSessions
             )
 
             workoutReflection = reflection
@@ -154,6 +155,50 @@ class ScoringViewModel: ObservableObject {
     }
 
     // MARK: - Save Workout
+
+    /// フォールバックreflectionを作成（AI分析失敗時）
+    private func createFallbackReflection(session: WorkoutSession) -> WorkoutReflection {
+        let distance = session.distance / 1000.0
+        let duration = session.duration / 60.0
+
+        // 簡易RPE推定
+        let estimatedRPE: Int
+        if distance < 1.0 {
+            estimatedRPE = 4
+        } else if distance < 3.0 {
+            estimatedRPE = 5
+        } else if distance < 5.0 {
+            estimatedRPE = 6
+        } else {
+            estimatedRPE = 7
+        }
+
+        return WorkoutReflection(
+            workoutSessionId: session.id,
+            estimatedRPE: estimatedRPE,
+            reflection: "今日も走ることができました！\(String(format: "%.2f", distance))kmを\(String(format: "%.0f", duration))分で完走しました。",
+            suggestions: "次回も同じペースで走り続けましょう。少しずつ距離を伸ばしていきましょう。",
+            milestoneProgress: MilestoneProgress(
+                isAchieved: false,
+                achievementMessage: "引き続き頑張りましょう！"
+            )
+        )
+    }
+
+    /// フォールバックreflectionで保存（AI分析失敗時）
+    func saveWorkoutWithFallback() async {
+        guard let session = workoutSession else {
+            errorMessage = "ワークアウトデータが見つかりません"
+            return
+        }
+
+        // Create fallback reflection
+        let fallbackReflection = createFallbackReflection(session: session)
+        workoutReflection = fallbackReflection
+
+        // Save with fallback reflection
+        await saveWorkoutWithReflection()
+    }
 
     /// 振り返りを含めてワークアウトを保存
     func saveWorkoutWithReflection() async {
