@@ -8,11 +8,11 @@
 import Foundation
 
 struct ChatGPTConfig {
-    static let apiKey: String = {
+    static let apiKey: String? = {
         guard let key = Bundle.main.object(forInfoDictionaryKey: "OPENAI_API_KEY") as? String,
               !key.isEmpty,
               key != "YOUR_OPENAI_API_KEY" else {
-            fatalError("OPENAI_API_KEY not found or invalid in Info.plist")
+            return nil
         }
         return key
     }()

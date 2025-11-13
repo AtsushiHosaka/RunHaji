@@ -38,12 +38,16 @@ final class ChatGPTService {
 
     /// ChatGPT APIを呼び出してテキストを生成
     func generateText(systemPrompt: String, userPrompt: String, useJSON: Bool = false) async throws -> String {
+        guard let apiKey = ChatGPTConfig.apiKey else {
+            throw ChatGPTError.missingApiKey
+        }
+
         guard let url = URL(string: ChatGPTConfig.apiEndpoint) else {
             throw ChatGPTError.invalidResponse
         }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(ChatGPTConfig.apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let messages = [
@@ -85,6 +89,7 @@ final class ChatGPTService {
 }
 
 enum ChatGPTError: Error, LocalizedError {
+    case missingApiKey
     case invalidResponse
     case noResponse
     case apiError(statusCode: Int, message: String)
@@ -92,6 +97,8 @@ enum ChatGPTError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
+        case .missingApiKey:
+            return "OpenAI APIキーが設定されていません。Info.plistにOPENAI_API_KEYを追加してください。"
         case .invalidResponse:
             return "APIからの応答が無効です"
         case .noResponse:

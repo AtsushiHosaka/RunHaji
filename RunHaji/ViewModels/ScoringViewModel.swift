@@ -124,6 +124,16 @@ class ScoringViewModel: ObservableObject {
 
     // MARK: - Workout Analysis
 
+    /// 現在のマイルストーンをロード
+    func loadCurrentMilestone() -> Milestone? {
+        guard let data = UserDefaults.standard.data(forKey: "user_roadmap"),
+              let roadmap = try? JSONDecoder().decode(Roadmap.self, from: data) else {
+            return nil
+        }
+
+        return roadmap.milestones.first { !$0.isCompleted }
+    }
+
     /// ワークアウトを分析して振り返りを生成
     func analyzeWorkout(userGoal: RunningGoal?, currentMilestone: Milestone?) async {
         guard let session = workoutSession else {

@@ -504,8 +504,8 @@ struct ScoringView: View {
             // Only analyze if not already done
             guard viewModel.workoutReflection == nil && !viewModel.isAnalyzing else { return }
 
-            // Get current milestone from UserDefaults
-            let currentMilestone: Milestone? = loadCurrentMilestone()
+            // Get current milestone from ViewModel
+            let currentMilestone: Milestone? = viewModel.loadCurrentMilestone()
 
             // Analyze workout with ChatGPT
             await viewModel.analyzeWorkout(
@@ -513,15 +513,6 @@ struct ScoringView: View {
                 currentMilestone: currentMilestone
             )
         }
-    }
-
-    private func loadCurrentMilestone() -> Milestone? {
-        guard let data = UserDefaults.standard.data(forKey: "user_roadmap"),
-              let roadmap = try? JSONDecoder().decode(Roadmap.self, from: data) else {
-            return nil
-        }
-
-        return roadmap.milestones.first { !$0.isCompleted }
     }
 
     private func rpeColor(_ rpe: Int) -> Color {
