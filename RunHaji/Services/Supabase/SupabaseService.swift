@@ -44,7 +44,7 @@ final class SupabaseService {
             "ideal_frequency": user.profile.idealFrequency ?? NSNull(),
             "current_frequency": user.profile.currentFrequency ?? NSNull(),
             "goal": user.profile.goal?.rawValue ?? NSNull(),
-            "updated_at": ISO8601DateFormatter().string(from: Date())
+            "updated_at": Date().timeIntervalSince1970
         ]
 
         try await client.database
@@ -69,7 +69,9 @@ final class SupabaseService {
             return nil
         }
 
-        return try JSONDecoder().decode(User.self, from: data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try decoder.decode(User.self, from: data)
     }
 
     // MARK: - Roadmap Management
@@ -86,7 +88,7 @@ final class SupabaseService {
             "title": roadmap.title,
             "goal": roadmap.goal.rawValue,
             "target_date": roadmap.targetDate?.timeIntervalSince1970 ?? NSNull(),
-            "updated_at": ISO8601DateFormatter().string(from: Date())
+            "updated_at": Date().timeIntervalSince1970
         ]
 
         try await client.database
@@ -113,7 +115,7 @@ final class SupabaseService {
             "target_date": milestone.targetDate?.timeIntervalSince1970 ?? NSNull(),
             "is_completed": milestone.isCompleted,
             "completed_at": milestone.completedAt?.timeIntervalSince1970 ?? NSNull(),
-            "updated_at": ISO8601DateFormatter().string(from: Date())
+            "updated_at": Date().timeIntervalSince1970
         ]
 
         try await client.database
@@ -140,7 +142,9 @@ final class SupabaseService {
         }
 
         // Parse roadmap
-        var roadmap = try JSONDecoder().decode(Roadmap.self, from: roadmapData)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        var roadmap = try decoder.decode(Roadmap.self, from: roadmapData)
 
         // Fetch milestones
         let milestonesResponse = try await client.database
@@ -151,7 +155,7 @@ final class SupabaseService {
             .execute()
 
         if let milestonesData = milestonesResponse.data {
-            let milestones = try JSONDecoder().decode([Milestone].self, from: milestonesData)
+            let milestones = try decoder.decode([Milestone].self, from: milestonesData)
             roadmap.milestones = milestones
         }
 
@@ -199,7 +203,9 @@ final class SupabaseService {
             return []
         }
 
-        return try JSONDecoder().decode([WorkoutSession].self, from: data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try decoder.decode([WorkoutSession].self, from: data)
     }
 
     // MARK: - Workout Reflection Management
@@ -247,7 +253,9 @@ final class SupabaseService {
             return []
         }
 
-        return try JSONDecoder().decode([WorkoutReflection].self, from: data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try decoder.decode([WorkoutReflection].self, from: data)
     }
 
     // MARK: - Upcoming Workout Management
@@ -288,7 +296,9 @@ final class SupabaseService {
             return []
         }
 
-        return try JSONDecoder().decode([UpcomingWorkout].self, from: data)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try decoder.decode([UpcomingWorkout].self, from: data)
     }
 
     func deleteUpcomingWorkout(id: UUID) async throws {
