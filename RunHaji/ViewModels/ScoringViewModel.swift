@@ -125,13 +125,11 @@ class ScoringViewModel: ObservableObject {
     // MARK: - Workout Analysis
 
     /// 現在のマイルストーンをロード
+    /// Note: This method is deprecated. The view layer should pass the current milestone
+    /// from HomeViewModel's roadmap instead of loading it here.
     func loadCurrentMilestone() -> Milestone? {
-        guard let data = UserDefaults.standard.data(forKey: "user_roadmap"),
-              let roadmap = try? JSONDecoder().decode(Roadmap.self, from: data) else {
-            return nil
-        }
-
-        return roadmap.milestones.first { !$0.isCompleted }
+        // TODO: Remove this method and have the view pass the milestone from HomeViewModel
+        return nil
     }
 
     /// ワークアウトを分析して振り返りを生成
@@ -237,37 +235,16 @@ class ScoringViewModel: ObservableObject {
             createdAt: session.createdAt
         )
 
-        // Save reflection data to UserDefaults (for offline access)
-        do {
-            let encoder = JSONEncoder()
-
-            // Load existing reflections
-            var reflections: [WorkoutReflection] = []
-            if let data = UserDefaults.standard.data(forKey: "workout_reflections"),
-               let existingReflections = try? JSONDecoder().decode([WorkoutReflection].self, from: data) {
-                reflections = existingReflections
-            }
-
-            // Add new reflection
-            reflections.append(reflection)
-
-            // Save back to UserDefaults
-            let data = try encoder.encode(reflections)
-            UserDefaults.standard.set(data, forKey: "workout_reflections")
-        } catch {
-            print("Failed to save reflection: \(error)")
-            // Continue anyway - workout session is still saved even if reflection save fails
-            // Don't block the user from completing the save operation
-        }
-
-        // Save to Supabase (for cloud sync)
+        // Save to Supabase
         do {
             try await SupabaseService.shared.saveWorkoutSession(session)
             try await SupabaseService.shared.saveWorkoutReflection(reflection)
             print("Workout session and reflection saved to Supabase successfully")
         } catch {
+            errorMessage = "ワークアウトの保存に失敗しました: \(error.localizedDescription)"
             print("Failed to save to Supabase: \(error.localizedDescription)")
-            // Continue anyway - data is saved locally
+            isSaving = false
+            return
         }
 
         workoutSession = session
