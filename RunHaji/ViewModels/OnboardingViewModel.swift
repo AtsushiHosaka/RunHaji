@@ -63,6 +63,9 @@ class OnboardingViewModel: ObservableObject {
     }
 
     func completeOnboarding() async throws {
+        // Get or create user ID
+        let userId = UserSessionManager.shared.currentUserId
+
         // Create user profile
         let profile = UserProfile(
             age: Int(age) ?? 0,
@@ -74,21 +77,11 @@ class OnboardingViewModel: ObservableObject {
             goal: selectedGoal
         )
 
-        let user = User(profile: profile)
+        let user = User(id: userId, profile: profile)
 
-        // Save to UserDefaults (for offline access)
-        let encoder = JSONEncoder()
-        let encoded = try encoder.encode(user)
-        UserDefaults.standard.set(encoded, forKey: "user_profile")
-
-        // Save to Supabase (for cloud sync)
-        do {
-            try await SupabaseService.shared.saveUserProfile(user)
-            print("User profile saved to Supabase successfully")
-        } catch {
-            // Log error but don't fail onboarding if Supabase is not configured
-            print("Failed to save user profile to Supabase: \(error.localizedDescription)")
-        }
+        // Save to Supabase
+        try await SupabaseService.shared.saveUserProfile(user)
+        print("User profile saved to Supabase successfully")
 
         isCompleted = true
     }
