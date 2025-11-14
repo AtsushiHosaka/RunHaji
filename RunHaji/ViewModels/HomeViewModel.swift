@@ -25,7 +25,9 @@ class HomeViewModel: ObservableObject {
             queue: .main
         ) { [weak self] notification in
             if let reflection = notification.userInfo?["reflection"] as? WorkoutReflection {
-                self?.updateMilestoneFromReflection(reflection)
+                Task { @MainActor in
+                    self?.updateMilestoneFromReflection(reflection)
+                }
             }
         }
 
@@ -209,15 +211,7 @@ class HomeViewModel: ObservableObject {
     }
 
     func refresh() async {
-        isLoading = true
-        loadUserData()
-        loadRoadmap()
-        loadUpcomingWorkouts()
-        loadRecentSessions()
-
-        // Simulate network delay
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        isLoading = false
+        await loadAllData()
     }
 
     /// ワークアウト振り返りを受け取ってマイルストーンを自動更新
