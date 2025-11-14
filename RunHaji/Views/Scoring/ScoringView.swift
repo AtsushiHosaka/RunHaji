@@ -71,8 +71,12 @@ struct ScoringView: View {
                     Divider()
                         .padding(.horizontal)
 
-                    // RPE Input
-                    rpeInputSection
+                    // Workout Reflection
+                    if viewModel.isAnalyzing {
+                        analyzingSection
+                    } else if let reflection = viewModel.workoutReflection {
+                        reflectionSection(reflection)
+                    }
 
                     Divider()
                         .padding(.horizontal)
@@ -81,7 +85,12 @@ struct ScoringView: View {
                     progressSection
 
                     // Save Button
-                    saveButton
+                    if viewModel.workoutReflection != nil {
+                        saveButton
+                    } else if !viewModel.isAnalyzing && viewModel.errorMessage != nil {
+                        // Analysis failed, show fallback save option
+                        fallbackSaveSection
+                    }
                 }
                 .padding()
             }
@@ -160,8 +169,122 @@ struct ScoringView: View {
         }
     }
 
-    private var rpeInputSection: some View {
-        RPEInputView(selectedRPE: $viewModel.selectedRPE)
+    private var analyzingSection: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.5)
+
+            Text("AIがワークアウトを分析中...")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+
+    private func reflectionSection(_ reflection: WorkoutReflection) -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("今日の振り返り")
+                .font(.headline)
+                .foregroundColor(.primary)
+
+            // RPE Badge
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(rpeColor(reflection.estimatedRPE).opacity(0.2))
+                        .frame(width: 60, height: 60)
+
+                    VStack(spacing: 2) {
+                        Text("RPE")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text("\(reflection.estimatedRPE)")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(rpeColor(reflection.estimatedRPE))
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(rpeLevel(reflection.estimatedRPE))
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                    Text("運動強度")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+            )
+
+            // Reflection
+            VStack(alignment: .leading, spacing: 8) {
+                Label("振り返り", systemImage: "bubble.left.fill")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
+
+                Text(reflection.reflection)
+                    .font(.body)
+                    .foregroundColor(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.blue.opacity(0.1))
+            )
+
+            // Suggestions
+            VStack(alignment: .leading, spacing: 8) {
+                Label("次回へのアドバイス", systemImage: "lightbulb.fill")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.orange)
+
+                Text(reflection.suggestions)
+                    .font(.body)
+                    .foregroundColor(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.orange.opacity(0.1))
+            )
+
+            // Milestone Progress
+            if let milestoneProgress = reflection.milestoneProgress, milestoneProgress.isAchieved {
+                HStack(spacing: 12) {
+                    Image(systemName: "trophy.fill")
+                        .font(.title2)
+                        .foregroundColor(.yellow)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("マイルストーン達成!")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Text(milestoneProgress.achievementMessage)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.yellow.opacity(0.1))
+                )
+            }
+        }
     }
 
     private var progressSection: some View {
@@ -267,7 +390,7 @@ struct ScoringView: View {
     private var saveButton: some View {
         Button {
             Task {
-                await viewModel.saveWorkoutWithRPE()
+                await viewModel.saveWorkoutWithReflection()
                 // Wait a moment before dismissing to show success message
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
                 dismiss()
@@ -289,6 +412,55 @@ struct ScoringView: View {
             .cornerRadius(12)
         }
         .disabled(viewModel.isSaving)
+    }
+
+    private var fallbackSaveSection: some View {
+        VStack(spacing: 16) {
+            VStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.largeTitle)
+                    .foregroundColor(.orange)
+
+                Text("AI分析に失敗しました")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
+                Text("基本情報のみでワークアウトを保存できます")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.orange.opacity(0.1))
+            )
+
+            Button {
+                Task {
+                    await viewModel.saveWorkoutWithFallback()
+                    // Wait a moment before dismissing to show success message
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                    dismiss()
+                }
+            } label: {
+                HStack {
+                    if viewModel.isSaving {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text("分析なしで保存")
+                            .fontWeight(.semibold)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.orange)
+                .foregroundColor(.white)
+                .cornerRadius(12)
+            }
+            .disabled(viewModel.isSaving)
+        }
     }
 
     private var successOverlay: some View {
@@ -328,7 +500,29 @@ struct ScoringView: View {
                 userGoal: userGoal,
                 idealFrequency: idealFrequency
             )
+
+            // Only analyze if not already done
+            guard viewModel.workoutReflection == nil && !viewModel.isAnalyzing else { return }
+
+            // Get current milestone from ViewModel
+            let currentMilestone: Milestone? = viewModel.loadCurrentMilestone()
+
+            // Analyze workout with ChatGPT
+            await viewModel.analyzeWorkout(
+                userGoal: userGoal,
+                currentMilestone: currentMilestone
+            )
         }
+    }
+
+    private func rpeColor(_ rpe: Int) -> Color {
+        guard let rpeModel = RPE(value: rpe) else { return .gray }
+        return rpeModel.color
+    }
+
+    private func rpeLevel(_ rpe: Int) -> String {
+        guard let rpeModel = RPE(value: rpe) else { return "" }
+        return rpeModel.description
     }
 }
 

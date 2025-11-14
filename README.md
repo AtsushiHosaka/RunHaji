@@ -15,13 +15,15 @@
 
 ### 2. Info.plistの設定
 
-1. `RunHaji/Info.plist.template`をコピーして`RunHaji/Info.plist`を作成
-2. SupabaseのプロジェクトURLとAnon Keyを設定:
+1. `RunHaji/Info.plist.template`をコピーして`RunHaji/Info.plist`を作成（存在しない場合は新規作成）
+2. 以下のキーを設定:
    ```xml
    <key>SUPABASE_URL</key>
    <string>あなたのSupabaseプロジェクトURL</string>
    <key>SUPABASE_ANON_KEY</key>
    <string>あなたのSupabase Anon Key</string>
+   <key>OPENAI_API_KEY</key>
+   <string>あなたのOpenAI APIキー</string>
    ```
 3. **重要**: `Info.plist`は`.gitignore`で除外されています。GitHubにpushしないでください。
 
@@ -53,10 +55,19 @@ RunHaji/
 │   └── Scoring/           # スコアリング画面
 ├── Services/              # 外部サービス連携
 │   ├── HealthKit/         # HealthKit連携
-│   └── Supabase/          # Supabase連携
-├── Config/                # 設定ファイル
+│   ├── Supabase/          # Supabase連携
+│   └── ChatGPT/           # ChatGPT/OpenAI連携
+├── Config/                # 設定ファイル（API Keys等）
 └── Resources/             # Assets等のリソース
 ```
+
+## 主な機能
+
+- **自動ワークアウト分析**: ChatGPT APIを使ってHealthKitデータを分析し、運動強度（RPE）を自動推定
+  ※API呼び出しに失敗した場合は、距離ベースの簡易推定にフォールバックし、ワークアウトデータを確実に保存
+- **AI振り返り**: ワークアウト終了後にAIが振り返りと次回へのアドバイスを生成
+- **マイルストーン自動判定**: ワークアウトデータに基づいて、マイルストーンの達成状況を自動判定
+- **パーソナライズドロードマップ**: ユーザーの目標に合わせたランニングプランを提供
 
 ## 開発
 

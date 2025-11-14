@@ -12,8 +12,9 @@ import HealthKit
 
 @MainActor
 class ScoringViewModel: ObservableObject {
-    @Published var selectedRPE: Int = 5
     @Published var workoutSession: WorkoutSession?
+    @Published var workoutReflection: WorkoutReflection?
+    @Published var isAnalyzing: Bool = false
     @Published var isSaving: Bool = false
     @Published var showSuccessMessage: Bool = false
     @Published var errorMessage: String?
@@ -25,6 +26,8 @@ class ScoringViewModel: ObservableObject {
 
     private let healthKitManager: HealthKitManager
     private let userId: String
+    private let analysisService = WorkoutAnalysisService.shared
+    private var recentWorkoutSessions: [WorkoutSession] = []
 
     init(healthKitManager: HealthKitManager, userId: String) {
         self.healthKitManager = healthKitManager
@@ -77,14 +80,27 @@ class ScoringViewModel: ObservableObject {
         // some may not be included in the weekly stats calculation.
         await healthKitManager.loadWorkouts()
 
-        // Calculate weekly totals
+        // Calculate weekly totals and build recent workout sessions
         weeklyDistance = 0.0
         weeklyWorkouts = 0
+        recentWorkoutSessions = []
 
         for workout in healthKitManager.workouts {
             if workout.startDate >= weekStart {
                 weeklyDistance += healthKitManager.getDistance(for: workout)
                 weeklyWorkouts += 1
+
+                // Build WorkoutSession for AI analysis
+                let session = WorkoutSession(
+                    userId: userId,
+                    startDate: workout.startDate,
+                    endDate: workout.endDate,
+                    duration: workout.duration,
+                    distance: healthKitManager.getDistance(for: workout),
+                    calories: workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0,
+                    rpe: nil
+                )
+                recentWorkoutSessions.append(session)
             }
         }
     }
@@ -106,25 +122,109 @@ class ScoringViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Workout Analysis
+
+    /// 現在のマイルストーンをロード
+    func loadCurrentMilestone() -> Milestone? {
+        guard let data = UserDefaults.standard.data(forKey: "user_roadmap"),
+              let roadmap = try? JSONDecoder().decode(Roadmap.self, from: data) else {
+            return nil
+        }
+
+        return roadmap.milestones.first { !$0.isCompleted }
+    }
+
+    /// ワークアウトを分析して振り返りを生成
+    func analyzeWorkout(userGoal: RunningGoal?, currentMilestone: Milestone?) async {
+        guard let session = workoutSession else {
+            errorMessage = "ワークアウトデータが見つかりません"
+            return
+        }
+
+        isAnalyzing = true
+        errorMessage = nil
+
+        do {
+            // Use recentWorkoutSessions (already populated by calculateWeeklyProgress -> loadWeeklyStats)
+            // Analyze workout with ChatGPT
+            let reflection = try await analysisService.analyzeWorkout(
+                session: session,
+                userGoal: userGoal,
+                currentMilestone: currentMilestone,
+                recentSessions: recentWorkoutSessions
+            )
+
+            workoutReflection = reflection
+        } catch {
+            print("Workout analysis failed: \(error.localizedDescription)")
+            errorMessage = "振り返りの生成に失敗しました。ネットワーク接続を確認してください。"
+        }
+
+        isAnalyzing = false
+    }
+
     // MARK: - Save Workout
 
-    /// RPEを含めてワークアウトを保存
-    func saveWorkoutWithRPE() async {
+    /// フォールバックreflectionを作成（AI分析失敗時）
+    private func createFallbackReflection(session: WorkoutSession) -> WorkoutReflection {
+        let distance = session.distance / 1000.0
+        let duration = session.duration / 60.0
+
+        // 簡易RPE推定
+        let estimatedRPE: Int
+        if distance < 1.0 {
+            estimatedRPE = 4
+        } else if distance < 3.0 {
+            estimatedRPE = 5
+        } else if distance < 5.0 {
+            estimatedRPE = 6
+        } else {
+            estimatedRPE = 7
+        }
+
+        return WorkoutReflection(
+            workoutSessionId: session.id,
+            estimatedRPE: estimatedRPE,
+            reflection: "今日も走ることができました！\(String(format: "%.2f", distance))kmを\(String(format: "%.0f", duration))分で完走しました。",
+            suggestions: "次回も同じペースで走り続けましょう。少しずつ距離を伸ばしていきましょう。",
+            milestoneProgress: MilestoneProgress(
+                isAchieved: false,
+                achievementMessage: "引き続き頑張りましょう！"
+            )
+        )
+    }
+
+    /// フォールバックreflectionで保存（AI分析失敗時）
+    func saveWorkoutWithFallback() async {
+        guard let session = workoutSession else {
+            errorMessage = "ワークアウトデータが見つかりません"
+            return
+        }
+
+        // Create fallback reflection
+        let fallbackReflection = createFallbackReflection(session: session)
+        workoutReflection = fallbackReflection
+
+        // Save with fallback reflection
+        await saveWorkoutWithReflection()
+    }
+
+    /// 振り返りを含めてワークアウトを保存
+    func saveWorkoutWithReflection() async {
         guard var session = workoutSession else {
             errorMessage = "ワークアウトデータが見つかりません"
             return
         }
 
-        // Validate RPE value
-        guard RPE(value: selectedRPE) != nil else {
-            errorMessage = "無効なRPE値です"
+        guard let reflection = workoutReflection else {
+            errorMessage = "振り返りが生成されていません"
             return
         }
 
         isSaving = true
         errorMessage = nil
 
-        // Update session with RPE
+        // Update session with estimated RPE
         session = WorkoutSession(
             id: session.id,
             userId: session.userId,
@@ -133,17 +233,49 @@ class ScoringViewModel: ObservableObject {
             duration: session.duration,
             distance: session.distance,
             calories: session.calories,
-            rpe: selectedRPE,
+            rpe: reflection.estimatedRPE,
             createdAt: session.createdAt
         )
 
-        // In a real implementation, save to Supabase
+        // Save reflection data to UserDefaults
+        do {
+            let encoder = JSONEncoder()
+
+            // Load existing reflections
+            var reflections: [WorkoutReflection] = []
+            if let data = UserDefaults.standard.data(forKey: "workout_reflections"),
+               let existingReflections = try? JSONDecoder().decode([WorkoutReflection].self, from: data) {
+                reflections = existingReflections
+            }
+
+            // Add new reflection
+            reflections.append(reflection)
+
+            // Save back to UserDefaults
+            let data = try encoder.encode(reflections)
+            UserDefaults.standard.set(data, forKey: "workout_reflections")
+        } catch {
+            print("Failed to save reflection: \(error)")
+            // Continue anyway - workout session is still saved even if reflection save fails
+            // Don't block the user from completing the save operation
+        }
+
+        // In a real implementation, also save to Supabase
         // For now, just simulate a save
         try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
 
         workoutSession = session
         isSaving = false
         showSuccessMessage = true
+
+        // Notify HomeViewModel to update milestone if achieved
+        if reflection.milestoneProgress?.isAchieved == true {
+            NotificationCenter.default.post(
+                name: NSNotification.Name("WorkoutReflectionSaved"),
+                object: nil,
+                userInfo: ["reflection": reflection]
+            )
+        }
 
         // Auto-hide success message after 2 seconds
         try? await Task.sleep(nanoseconds: 2_000_000_000)
