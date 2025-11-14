@@ -25,6 +25,21 @@ class HomeViewModel: ObservableObject {
         loadRoadmap()
         loadUpcomingWorkouts()
         loadRecentSessions()
+
+        // Listen for workout reflection saved notifications
+        NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("WorkoutReflectionSaved"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            if let reflection = notification.userInfo?["reflection"] as? WorkoutReflection {
+                self?.updateMilestoneFromReflection(reflection)
+            }
+        }
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     var progressPercentage: Double {
@@ -206,5 +221,27 @@ class HomeViewModel: ObservableObject {
         // Simulate network delay
         try? await Task.sleep(nanoseconds: 500_000_000)
         isLoading = false
+    }
+
+    /// ワークアウト振り返りを受け取ってマイルストーンを自動更新
+    func updateMilestoneFromReflection(_ reflection: WorkoutReflection) {
+        guard var roadmap = roadmap else { return }
+        guard let milestoneProgress = reflection.milestoneProgress else { return }
+        guard milestoneProgress.isAchieved else { return }
+
+        // Find the milestone by ID if available, otherwise use first uncompleted
+        var index: Int?
+        if let milestoneId = milestoneProgress.milestoneId {
+            index = roadmap.milestones.firstIndex(where: { $0.id == milestoneId })
+        } else {
+            index = roadmap.milestones.firstIndex(where: { !$0.isCompleted })
+        }
+
+        if let index = index {
+            roadmap.milestones[index].isCompleted = true
+            roadmap.milestones[index].completedAt = Date()
+            self.roadmap = roadmap
+            saveRoadmap()
+        }
     }
 }
