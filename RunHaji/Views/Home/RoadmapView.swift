@@ -95,7 +95,8 @@ struct MilestoneCard: View {
     let isLast: Bool
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        NavigationLink(destination: MilestoneDetailView(milestone: milestone)) {
+            HStack(alignment: .top, spacing: 12) {
             // Timeline indicator
             VStack(spacing: 0) {
                 Circle()
@@ -166,10 +167,12 @@ struct MilestoneCard: View {
             .padding(.bottom, isLast ? 0 : 16)
 
             Spacer()
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(milestone.title), \(milestone.isCompleted ? "完了済み" : "未完了")")
+            .accessibilityHint(milestone.description ?? "")
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(milestone.title), \(milestone.isCompleted ? "完了済み" : "未完了")")
-        .accessibilityHint(milestone.description ?? "")
+        .buttonStyle(PlainButtonStyle())
     }
 
     private func formattedDate(_ date: Date) -> String {
