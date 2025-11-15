@@ -2,20 +2,24 @@
 //  ContentView.swift
 //  RunHaji
 //
-//  Created by 保坂篤志 on 2025/11/13.
+//  Created by Claude Code on 2025/11/13.
 //
 
 import SwiftUI
 
 struct ContentView: View {
+    @State private var hasCompletedOnboarding = UserSessionManager.shared.hasCompletedOnboarding
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            if hasCompletedOnboarding {
+                MainTabView()
+            } else {
+                OnboardingView(onComplete: {
+                    hasCompletedOnboarding = true
+                })
+            }
         }
-        .padding()
     }
 }
 

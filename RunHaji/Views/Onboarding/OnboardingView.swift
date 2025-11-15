@@ -9,7 +9,7 @@ import SwiftUI
 
 struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
-    @Binding var isOnboardingComplete: Bool
+    let onComplete: () -> Void
     @State private var showError = false
     @State private var errorMessage = ""
 
@@ -64,7 +64,7 @@ struct OnboardingView: View {
                         Task {
                             do {
                                 try await viewModel.completeOnboarding()
-                                isOnboardingComplete = true
+                                onComplete()
                             } catch {
                                 errorMessage = "プロフィールの保存に失敗しました: \(error.localizedDescription)"
                                 showError = true
@@ -87,5 +87,5 @@ struct OnboardingView: View {
 }
 
 #Preview {
-    OnboardingView(isOnboardingComplete: .constant(false))
+    OnboardingView(onComplete: {})
 }
