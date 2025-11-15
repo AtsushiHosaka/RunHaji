@@ -131,14 +131,13 @@ final class SupabaseService {
             .single()
             .execute()
 
-        let data = response.data
-        if data.isEmpty {
+        guard !response.data.isEmpty else {
             return nil
         }
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return try decoder.decode(User.self, from: data)
+        return try decoder.decode(User.self, from: response.data)
     }
 
     // MARK: - Roadmap Management
