@@ -251,14 +251,12 @@ class ScoringViewModel: ObservableObject {
         isSaving = false
         showSuccessMessage = true
 
-        // Notify HomeViewModel to update milestone if achieved
-        if reflection.milestoneProgress?.isAchieved == true {
-            NotificationCenter.default.post(
-                name: NSNotification.Name("WorkoutReflectionSaved"),
-                object: nil,
-                userInfo: ["reflection": reflection]
-            )
-        }
+        // Always notify HomeViewModel to refresh data
+        NotificationCenter.default.post(
+            name: NSNotification.Name("WorkoutReflectionSaved"),
+            object: nil,
+            userInfo: ["reflection": reflection]
+        )
 
         // Auto-hide success message after 2 seconds
         try? await Task.sleep(nanoseconds: 2_000_000_000)
