@@ -137,3 +137,4 @@ RunHaji/Info.plist
 # Config.plist contains API keys - DO NOT COMMIT
 RunHaji/RunHaji/Config.plist
 **/Config.plist
+RunHaji.xcodeproj/project.xcworkspace/xcuserdata/hosakaatsushi.xcuserdatad/UserInterfaceState.xcuserstate

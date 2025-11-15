@@ -177,6 +177,128 @@ final class OpenAIService {
         }
         """
     }
+
+    func generateUpcomingWorkouts(for user: User, roadmap: Roadmap, count: Int = 3) async throws -> [UpcomingWorkout] {
+        guard let apiKey = apiKey else {
+            throw OpenAIError.notConfigured
+        }
+
+        let prompt = buildWorkoutPrompt(for: user, roadmap: roadmap, count: count)
+
+        let request = ChatCompletionRequest(
+            model: "gpt-4o-mini",
+            messages: [
+                ChatCompletionRequest.Message(
+                    role: "system",
+                    content: """
+                    あなたはランニング初心者向けのトレーニングプランナーです。
+                    ユーザーのロードマップと現在の進捗に基づいて、今後のワークアウトプランを提案してください。
+                    必ずJSON形式で返してください。
+                    """
+                ),
+                ChatCompletionRequest.Message(
+                    role: "user",
+                    content: prompt
+                )
+            ],
+            temperature: 0.7,
+            response_format: ChatCompletionRequest.ResponseFormat(type: "json_object")
+        )
+
+        // Make API request
+        var urlRequest = URLRequest(url: URL(string: baseURL)!)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.httpBody = try JSONEncoder().encode(request)
+
+        let (data, response) = try await URLSession.shared.data(for: urlRequest)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw OpenAIError.apiError("API request failed")
+        }
+
+        let completionResponse = try JSONDecoder().decode(ChatCompletionResponse.self, from: data)
+
+        guard let content = completionResponse.choices.first?.message.content else {
+            throw OpenAIError.invalidResponse
+        }
+
+        let workoutData = try JSONDecoder().decode(
+            WorkoutPlanResponse.self,
+            from: content.data(using: .utf8)!
+        )
+
+        return workoutData.workouts.map { workout in
+            UpcomingWorkout(
+                title: workout.title,
+                estimatedDuration: workout.estimatedDuration * 60, // minutes to seconds
+                targetDistance: workout.targetDistance.map { $0 * 1000 }, // km to meters
+                notes: workout.notes
+            )
+        }
+    }
+
+    private func buildWorkoutPrompt(for user: User, roadmap: Roadmap, count: Int) -> String {
+        let profile = user.profile
+        let goal = profile.goal?.description ?? "健康を改善したい"
+        let availableTime = profile.availableTimePerWeek.map { "\($0)分/週" } ?? "不明"
+
+        // Find current milestone (first uncompleted one)
+        let currentMilestone = roadmap.milestones.first { !$0.isCompleted }
+        let milestoneInfo = currentMilestone.map {
+            "現在のマイルストーン: \($0.title) - \($0.description ?? "")"
+        } ?? "マイルストーンなし"
+
+        return """
+        以下のプロフィールを持つランニング初心者のために、今後\(count)回分のワークアウトプランを作成してください。
+
+        【ユーザー情報】
+        - 目標: \(goal)
+        - 週の利用可能時間: \(availableTime)
+        - \(milestoneInfo)
+
+        【ロードマップタイトル】
+        \(roadmap.title)
+
+        【要件】
+        1. 各ワークアウトは段階的に難易度が上がること
+        2. 初心者に優しく、無理のない内容であること
+        3. 現在のマイルストーンに向けて進捗できる内容であること
+        4. 具体的な目標（距離または時間）を含めること
+
+        以下のJSON形式で返してください：
+        {
+          "workouts": [
+            {
+              "title": "ワークアウトのタイトル",
+              "estimatedDuration": 15,  // 分
+              "targetDistance": 1.0,     // km (省略可)
+              "notes": "具体的なアドバイスやポイント"
+            }
+          ]
+        }
+        """
+    }
+}
+
+private struct WorkoutPlanResponse: Codable {
+    let workouts: [WorkoutData]
+
+    struct WorkoutData: Codable {
+        let title: String
+        let estimatedDuration: Double
+        let targetDistance: Double?
+        let notes: String
+
+        enum CodingKeys: String, CodingKey {
+            case title
+            case estimatedDuration = "estimatedDuration"
+            case targetDistance = "targetDistance"
+            case notes
+        }
+    }
 }
 
 // MARK: - Error Types
