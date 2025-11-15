@@ -12,7 +12,7 @@ import Combine
 class SettingsViewModel: ObservableObject {
     @Published var user: User?
     @Published var isSyncing = false
-    @Published var showingLogoutAlert = false
+    @Published var showingDeleteAlert = false
     @Published var errorMessage: String?
     
     // Profile editing
@@ -73,8 +73,9 @@ class SettingsViewModel: ObservableObject {
         isSyncing = false
     }
     
-    func logout() {
+    func deleteAllData() {
+        // Clear all local data
         UserSessionManager.shared.clearSession()
-        // App will restart and show onboarding
+        // App will automatically show onboarding screen when there's no stored user ID
     }
 }

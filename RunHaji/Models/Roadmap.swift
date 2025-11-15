@@ -17,6 +17,17 @@ struct Roadmap: Codable, Identifiable {
     var createdAt: Date
     var updatedAt: Date
 
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case title
+        case goal
+        case targetDate = "target_date"
+        case milestones
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+
     init(
         id: UUID = UUID(),
         userId: String,
@@ -55,6 +66,16 @@ struct Milestone: Codable, Identifiable {
     var isCompleted: Bool
     var completedAt: Date?
     var workouts: [WorkoutSession]
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case description
+        case targetDate = "target_date"
+        case isCompleted = "is_completed"
+        case completedAt = "completed_at"
+        case workouts
+    }
 
     init(
         id: UUID = UUID(),
