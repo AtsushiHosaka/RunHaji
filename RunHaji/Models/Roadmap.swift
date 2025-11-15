@@ -113,19 +113,31 @@ struct Milestone: Codable, Identifiable {
 
 struct UpcomingWorkout: Codable, Identifiable {
     let id: UUID
+    let userId: String
     var title: String
     var estimatedDuration: TimeInterval
     var targetDistance: Double?
     var notes: String?
 
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case title
+        case estimatedDuration = "estimated_duration"
+        case targetDistance = "target_distance"
+        case notes
+    }
+
     init(
         id: UUID = UUID(),
+        userId: String,
         title: String,
         estimatedDuration: TimeInterval,
         targetDistance: Double? = nil,
         notes: String? = nil
     ) {
         self.id = id
+        self.userId = userId
         self.title = title
         self.estimatedDuration = estimatedDuration
         self.targetDistance = targetDistance

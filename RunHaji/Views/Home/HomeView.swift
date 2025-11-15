@@ -17,12 +17,30 @@ struct HomeView: View {
                     // Greeting Section
                     greetingSection
 
-                    // Progress Overview
-                    progressOverviewSection
+                    // Step Progress View
+                    if viewModel.roadmap != nil {
+                        StepProgressView(
+                            currentMilestone: viewModel.currentMilestone,
+                            totalMilestones: viewModel.totalMilestones,
+                            completedMilestones: viewModel.completedMilestones
+                        )
+                        .padding(.horizontal)
+                    }
+
+                    // Gear List (そろえるもの)
+                    GearListView(
+                        userProducts: $viewModel.userProducts,
+                        onTogglePurchase: { userProductId in
+                            Task {
+                                await viewModel.toggleProductPurchase(userProductId: userProductId)
+                            }
+                        }
+                    )
 
                     // Roadmap Visualization
                     RoadmapView(
                         roadmap: viewModel.roadmap,
+                        isGenerating: viewModel.isGeneratingRoadmap,
                         onGenerateRoadmap: {
                             await viewModel.createDefaultRoadmap()
                         }
@@ -37,7 +55,7 @@ struct HomeView: View {
                 }
                 .padding(.vertical)
             }
-            .navigationTitle("ホーム")
+            .navigationTitle("DASHINBAN")
             .refreshable {
                 await viewModel.refresh()
             }
@@ -98,13 +116,7 @@ struct HomeView: View {
                     .frame(height: 12)
 
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [.blue, .cyan]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .fill(LinearGradient.appGradient)
                     .frame(height: 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .scaleEffect(x: viewModel.progressPercentage / 100, y: 1, anchor: .leading)
@@ -116,10 +128,10 @@ struct HomeView: View {
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .padding(20)
+        .background(Color.cardBackground)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 4)
         .padding(.horizontal)
     }
 

@@ -18,12 +18,9 @@ struct RunningView: View {
     var body: some View {
         ZStack {
             // Background gradient
-            LinearGradient(
-                gradient: Gradient(colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            LinearGradient.appGradient
+                .opacity(0.3)
+                .ignoresSafeArea()
 
             VStack(spacing: 40) {
                 Spacer()
