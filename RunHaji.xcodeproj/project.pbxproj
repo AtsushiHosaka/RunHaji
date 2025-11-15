@@ -6,6 +6,14 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		6D5C97B72EC6BBA900D77E79 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 6D5C97B62EC6BBA900D77E79 /* Auth */; };
+		6D5C97B92EC6BBA900D77E79 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 6D5C97B82EC6BBA900D77E79 /* Functions */; };
+		6D5C97BB2EC6BBA900D77E79 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 6D5C97BA2EC6BBA900D77E79 /* PostgREST */; };
+		6D5C97BD2EC6BBA900D77E79 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 6D5C97BC2EC6BBA900D77E79 /* Realtime */; };
+		6D5C97BF2EC6BBA900D77E79 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 6D5C97BE2EC6BBA900D77E79 /* Storage */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		6D9608C12EC5A106009E2240 /* RunHaji.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RunHaji.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +31,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D5C97BB2EC6BBA900D77E79 /* PostgREST in Frameworks */,
+				6D5C97B92EC6BBA900D77E79 /* Functions in Frameworks */,
+				6D5C97B72EC6BBA900D77E79 /* Auth in Frameworks */,
+				6D5C97BF2EC6BBA900D77E79 /* Storage in Frameworks */,
+				6D5C97BD2EC6BBA900D77E79 /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +78,11 @@
 			);
 			name = RunHaji;
 			packageProductDependencies = (
+				6D5C97B62EC6BBA900D77E79 /* Auth */,
+				6D5C97B82EC6BBA900D77E79 /* Functions */,
+				6D5C97BA2EC6BBA900D77E79 /* PostgREST */,
+				6D5C97BC2EC6BBA900D77E79 /* Realtime */,
+				6D5C97BE2EC6BBA900D77E79 /* Storage */,
 			);
 			productName = RunHaji;
 			productReference = 6D9608C12EC5A106009E2240 /* RunHaji.app */;
@@ -94,6 +112,9 @@
 			);
 			mainGroup = 6D9608B82EC5A106009E2240;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6D5C97B52EC6BBA900D77E79 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6D9608C22EC5A106009E2240 /* Products */;
 			projectDirPath = "";
@@ -332,6 +353,45 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6D5C97B52EC6BBA900D77E79 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6D5C97B62EC6BBA900D77E79 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6D5C97B52EC6BBA900D77E79 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		6D5C97B82EC6BBA900D77E79 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6D5C97B52EC6BBA900D77E79 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		6D5C97BA2EC6BBA900D77E79 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6D5C97B52EC6BBA900D77E79 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		6D5C97BC2EC6BBA900D77E79 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6D5C97B52EC6BBA900D77E79 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		6D5C97BE2EC6BBA900D77E79 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6D5C97B52EC6BBA900D77E79 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6D9608B92EC5A106009E2240 /* Project object */;
 }

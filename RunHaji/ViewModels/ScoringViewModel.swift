@@ -237,7 +237,7 @@ class ScoringViewModel: ObservableObject {
             createdAt: session.createdAt
         )
 
-        // Save reflection data to UserDefaults
+        // Save reflection data to UserDefaults (for offline access)
         do {
             let encoder = JSONEncoder()
 
@@ -260,9 +260,15 @@ class ScoringViewModel: ObservableObject {
             // Don't block the user from completing the save operation
         }
 
-        // In a real implementation, also save to Supabase
-        // For now, just simulate a save
-        try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+        // Save to Supabase (for cloud sync)
+        do {
+            try await SupabaseService.shared.saveWorkoutSession(session)
+            try await SupabaseService.shared.saveWorkoutReflection(reflection)
+            print("Workout session and reflection saved to Supabase successfully")
+        } catch {
+            print("Failed to save to Supabase: \(error.localizedDescription)")
+            // Continue anyway - data is saved locally
+        }
 
         workoutSession = session
         isSaving = false
