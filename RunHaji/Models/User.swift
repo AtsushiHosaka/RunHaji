@@ -60,22 +60,56 @@ enum RunningGoal: String, Codable, CaseIterable {
     case completeDistance = "特定の距離を完走したい"
     case healthImprovement = "健康を改善したい"
 
-    var description: String {
-        return self.rawValue
+    // 表示用タイトル
+    var displayTitle: String {
+        switch self {
+        case .loseWeight:
+            return NSLocalizedString("goal.option.lose_weight.title", comment: "")
+        case .buildStamina:
+            return NSLocalizedString("goal.option.build_stamina.title", comment: "")
+        case .stressRelief:
+            return NSLocalizedString("goal.option.stress_relief.title", comment: "")
+        case .completeDistance:
+            return NSLocalizedString("goal.option.complete_distance.title", comment: "")
+        case .healthImprovement:
+            return NSLocalizedString("goal.option.health_improvement.title", comment: "")
+        }
     }
 
+    // 表示用サブタイトル
+    var displaySubtitle: String {
+        switch self {
+        case .loseWeight:
+            return NSLocalizedString("goal.option.lose_weight.subtitle", comment: "")
+        case .buildStamina:
+            return NSLocalizedString("goal.option.build_stamina.subtitle", comment: "")
+        case .stressRelief:
+            return NSLocalizedString("goal.option.stress_relief.subtitle", comment: "")
+        case .completeDistance:
+            return NSLocalizedString("goal.option.complete_distance.subtitle", comment: "")
+        case .healthImprovement:
+            return NSLocalizedString("goal.option.health_improvement.subtitle", comment: "")
+        }
+    }
+
+    // 既存呼び出し互換のため（表示向けにローカライズ）
+    var description: String {
+        return displayTitle
+    }
+
+    // ロードマップのタイトル（表示用）
     var roadmapTitle: String {
         switch self {
         case .loseWeight:
-            return "減量のための道"
+            return NSLocalizedString("goal.roadmap_title.lose_weight", comment: "")
         case .buildStamina:
-            return "体力向上のための道"
+            return NSLocalizedString("goal.roadmap_title.build_stamina", comment: "")
         case .stressRelief:
-            return "ストレス解消のための道"
+            return NSLocalizedString("goal.roadmap_title.stress_relief", comment: "")
         case .completeDistance:
-            return "完走のための道"
+            return NSLocalizedString("goal.roadmap_title.complete_distance", comment: "")
         case .healthImprovement:
-            return "健康改善のための道"
+            return NSLocalizedString("goal.roadmap_title.health_improvement", comment: "")
         }
     }
 }
