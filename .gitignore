@@ -133,3 +133,7 @@ RunHaji/Info.plist
 
 # Keep template for reference
 !RunHaji/Info.plist.template
+
+# Config.plist contains API keys - DO NOT COMMIT
+RunHaji/RunHaji/Config.plist
+**/Config.plist

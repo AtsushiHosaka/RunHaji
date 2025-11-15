@@ -9,7 +9,7 @@ import SwiftUI
 
 struct RoadmapView: View {
     let roadmap: Roadmap?
-    @State private var showComingSoonAlert = false
+    var onGenerateRoadmap: (() async -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -64,22 +64,21 @@ struct RoadmapView: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
-            Button(action: {
-                showComingSoonAlert = true
-            }) {
-                Text("ロードマップを作成")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 12)
-                    .background(Color.blue)
-                    .cornerRadius(8)
-            }
-            .alert("準備中", isPresented: $showComingSoonAlert) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("この機能は現在開発中です。しばらくお待ちください。")
+            if let onGenerateRoadmap = onGenerateRoadmap {
+                Button(action: {
+                    Task {
+                        await onGenerateRoadmap()
+                    }
+                }) {
+                    Text("ロードマップを作成")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(Color.blue)
+                        .cornerRadius(8)
+                }
             }
         }
         .frame(maxWidth: .infinity)

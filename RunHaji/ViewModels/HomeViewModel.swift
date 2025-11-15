@@ -16,6 +16,7 @@ class HomeViewModel: ObservableObject {
     @Published var recentSessions: [WorkoutSession] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var showErrorAlert = false
 
     init() {
         // Listen for workout reflection saved notifications
@@ -85,7 +86,7 @@ class HomeViewModel: ObservableObject {
                 roadmap = loadedRoadmap
             } else {
                 // Create default roadmap if none exists
-                createDefaultRoadmap()
+                await createDefaultRoadmap()
             }
 
             // Load upcoming workouts
@@ -108,44 +109,30 @@ class HomeViewModel: ObservableObject {
         isLoading = false
     }
 
-    func createDefaultRoadmap() {
+    func createDefaultRoadmap() async {
         guard let user = user else {
             errorMessage = "ユーザーデータが見つかりません。オンボーディングを完了してください。"
+            showErrorAlert = true
             return
         }
 
-        let goal = user.profile.goal ?? .healthImprovement
+        isLoading = true
+        errorMessage = nil
+        showErrorAlert = false
 
-        let milestones = [
-            Milestone(
-                title: "初めてのランニング",
-                description: "15分間のランニングを完了する",
-                targetDate: Calendar.current.date(byAdding: .day, value: 7, to: Date()),
-                isCompleted: false
-            ),
-            Milestone(
-                title: "1kmランニング達成",
-                description: "1kmを走りきる",
-                targetDate: Calendar.current.date(byAdding: .day, value: 14, to: Date()),
-                isCompleted: false
-            ),
-            Milestone(
-                title: "週2回のペースを確立",
-                description: "2週間連続で週2回走る",
-                targetDate: Calendar.current.date(byAdding: .day, value: 28, to: Date()),
-                isCompleted: false
-            )
-        ]
+        do {
+            // Generate roadmap using OpenAI
+            roadmap = try await OpenAIService.shared.generateRoadmap(for: user)
 
-        roadmap = Roadmap(
-            userId: user.id.uuidString,
-            title: goal.roadmapTitle,
-            goal: goal,
-            targetDate: Calendar.current.date(byAdding: .month, value: 3, to: Date()),
-            milestones: milestones
-        )
+            // Save to Supabase
+            saveRoadmap()
+        } catch {
+            print("Failed to generate roadmap: \(error)")
+            errorMessage = "ロードマップの生成に失敗しました。\n\(error.localizedDescription)\n\nもう一度お試しください。"
+            showErrorAlert = true
+        }
 
-        saveRoadmap()
+        isLoading = false
     }
 
     func createDefaultUpcomingWorkouts() {
