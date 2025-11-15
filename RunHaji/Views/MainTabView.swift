@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @StateObject private var healthKitManager = HealthKitManager()
-
     var body: some View {
         TabView {
             HomeView()
@@ -21,7 +19,6 @@ struct MainTabView: View {
                 .tabItem {
                     Label("ランニング", systemImage: "figure.run")
                 }
-                .environmentObject(healthKitManager)
 
             WorkoutHistoryView()
                 .tabItem {
