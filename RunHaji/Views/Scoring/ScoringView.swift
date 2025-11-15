@@ -88,26 +88,11 @@ struct ScoringView: View {
 
                     // Progress Section
                     progressSection
-
-                    // Save Button
-                    if viewModel.workoutReflection != nil {
-                        saveButton
-                    } else if !viewModel.isAnalyzing && viewModel.errorMessage != nil {
-                        // Analysis failed, show fallback save option
-                        fallbackSaveSection
-                    }
                 }
                 .padding()
             }
             .navigationTitle("ワークアウト記録")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("スキップ") {
-                        dismiss()
-                    }
-                }
-            }
             .overlay {
                 if viewModel.showSuccessMessage {
                     successOverlay
@@ -516,12 +501,22 @@ struct ScoringView: View {
                 currentMilestone: currentMilestone
             )
 
-            // Trigger confetti if milestone was achieved
-            if let reflection = viewModel.workoutReflection,
-               reflection.milestoneProgress?.isAchieved == true {
-                // Delay slightly for better UX
-                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-                confettiCounter += 1
+            // Auto-save after analysis
+            if viewModel.workoutReflection != nil {
+                // Trigger confetti if milestone was achieved (before saving)
+                if let reflection = viewModel.workoutReflection,
+                   reflection.milestoneProgress?.isAchieved == true {
+                    // Delay slightly for better UX
+                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                    confettiCounter += 1
+                }
+
+                // Analysis succeeded - save with reflection
+                await viewModel.saveWorkoutWithReflection()
+            } else if viewModel.errorMessage != nil {
+                // Analysis failed - save with fallback reflection
+                print("⚠️ Analysis failed, saving with fallback reflection")
+                await viewModel.saveWorkoutWithFallback()
             }
         }
     }

@@ -29,7 +29,14 @@ class HomeViewModel: ObservableObject {
         ) { [weak self] notification in
             if let reflection = notification.userInfo?["reflection"] as? WorkoutReflection {
                 Task { @MainActor in
+                    // Update milestone if achieved
                     self?.updateMilestoneFromReflection(reflection)
+
+                    // Always reload recent sessions and roadmap to show latest data
+                    await self?.loadRecentSessions()
+                    await self?.reloadRoadmap()
+
+                    print("✅ Home screen refreshed after workout save")
                 }
             }
         }
@@ -112,6 +119,37 @@ class HomeViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    /// Reload recent workout sessions
+    func loadRecentSessions() async {
+        guard let userId = UserSessionManager.shared.storedUserId else {
+            return
+        }
+
+        do {
+            let sessions = try await SupabaseService.shared.getWorkoutSessions(userId: userId.uuidString, limit: 5)
+            recentSessions = sessions
+            print("✅ Reloaded \(sessions.count) recent sessions")
+        } catch {
+            print("❌ Failed to reload recent sessions: \(error)")
+        }
+    }
+
+    /// Reload roadmap to update progress
+    func reloadRoadmap() async {
+        guard let userId = UserSessionManager.shared.storedUserId else {
+            return
+        }
+
+        do {
+            if let loadedRoadmap = try await SupabaseService.shared.getRoadmap(userId: userId.uuidString) {
+                roadmap = loadedRoadmap
+                print("✅ Reloaded roadmap - Progress: \(loadedRoadmap.progressPercentage)%")
+            }
+        } catch {
+            print("❌ Failed to reload roadmap: \(error)")
+        }
     }
 
     func createDefaultRoadmap() async {
