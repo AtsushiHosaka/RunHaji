@@ -98,46 +98,36 @@ struct ProductCard: View {
     let product: Product
 
     var body: some View {
-        Link(destination: URL(string: product.affiliateURL)!) {
+        Link(destination: URL(string: product.purchaseURL)!) {
             VStack(alignment: .leading, spacing: 12) {
                 // Image placeholder
-                Rectangle()
-                    .fill(Color.gray.opacity(0.2))
-                    .frame(width: 200, height: 150)
-                    .cornerRadius(12)
-                    .overlay {
-                        Image(systemName: categoryIcon(for: product.category))
-                            .font(.largeTitle)
-                            .foregroundColor(.gray)
-                    }
+                ZStack {
+                    Rectangle()
+                        .fill(
+                            LinearGradient.appGradient
+                                .opacity(0.1)
+                        )
+                        .frame(height: 150)
+                        .cornerRadius(12)
 
-                VStack(alignment: .leading, spacing: 6) {
-                    // Price tier badge
-                    Text(product.priceTier.rawValue)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(tierColor(for: product.priceTier))
-                        .cornerRadius(4)
+                    Image(systemName: categoryIcon(for: product.category))
+                        .font(.largeTitle)
+                        .foregroundColor(.accent.opacity(0.5))
+                }
 
-                    // Product name
-                    Text(product.name)
+                VStack(alignment: .leading, spacing: 8) {
+                    // Product title
+                    Text(product.title)
                         .font(.headline)
                         .foregroundColor(.primary)
                         .lineLimit(2)
-
-                    // Brand
-                    Text(product.brand)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
 
                     // Price
                     Text("¥\(product.price.formatted())")
                         .font(.title3)
                         .fontWeight(.bold)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.accent)
 
                     // Recommended for
                     Text(product.recommendedFor)
@@ -147,10 +137,10 @@ struct ProductCard: View {
                 }
             }
             .frame(width: 200)
-            .padding()
-            .background(Color(.systemBackground))
+            .padding(16)
+            .background(Color.cardBackground)
             .cornerRadius(16)
-            .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 2)
+            .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 4)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -162,14 +152,6 @@ struct ProductCard: View {
         case .accessories: return "eyeglasses"
         case .supplements: return "pills"
         case .gadgets: return "applewatch"
-        }
-    }
-
-    private func tierColor(for tier: PriceTier) -> Color {
-        switch tier {
-        case .budget: return .green
-        case .mid: return .orange
-        case .premium: return .purple
         }
     }
 }

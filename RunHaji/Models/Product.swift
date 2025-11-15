@@ -8,11 +8,21 @@
 import Foundation
 
 enum ProductCategory: String, Codable, CaseIterable {
-    case shoes = "シューズ"
-    case apparel = "ウェア"
-    case accessories = "アクセサリー"
-    case supplements = "サプリメント・補給食"
-    case gadgets = "ガジェット"
+    case shoes = "shoes"
+    case apparel = "apparel"
+    case accessories = "accessories"
+    case supplements = "supplements"
+    case gadgets = "gadgets"
+
+    var displayName: String {
+        switch self {
+        case .shoes: return "シューズ"
+        case .apparel: return "ウェア"
+        case .accessories: return "アクセサリー"
+        case .supplements: return "サプリメント・補給食"
+        case .gadgets: return "ガジェット"
+        }
+    }
 }
 
 enum PriceTier: String, Codable {
@@ -21,48 +31,46 @@ enum PriceTier: String, Codable {
     case premium = "プレミアム"
 }
 
+/// Product stored in Supabase (master data)
 struct Product: Identifiable, Codable {
     let id: UUID
-    let name: String
-    let category: ProductCategory
-    let priceTier: PriceTier
+    let title: String
     let price: Int
-    let brand: String
-    let description: String
     let imageURL: String?
-    let affiliateURL: String
-    let features: [String]
-    let recommendedFor: String // どんな人におすすめか
+    let purchaseURL: String // Amazon等の販売URL
+    let recommendedFor: String // どんな人におすすめか（AI判定用）
+    let category: ProductCategory
 
-    init(
-        id: UUID = UUID(),
-        name: String,
-        category: ProductCategory,
-        priceTier: PriceTier,
-        price: Int,
-        brand: String,
-        description: String,
-        imageURL: String? = nil,
-        affiliateURL: String,
-        features: [String] = [],
-        recommendedFor: String
-    ) {
-        self.id = id
-        self.name = name
-        self.category = category
-        self.priceTier = priceTier
-        self.price = price
-        self.brand = brand
-        self.description = description
-        self.imageURL = imageURL
-        self.affiliateURL = affiliateURL
-        self.features = features
-        self.recommendedFor = recommendedFor
+    enum CodingKeys: String, CodingKey {
+        case id
+        case title
+        case price
+        case imageURL = "image_url"
+        case purchaseURL = "purchase_url"
+        case recommendedFor = "recommended_for"
+        case category
     }
 }
 
-struct ProductRecommendation: Codable {
-    let category: ProductCategory
-    let products: [Product]
-    let reasoning: String // なぜこの商品がおすすめなのか
+/// User's product with purchase status (user-specific data)
+struct UserProduct: Identifiable, Codable {
+    let id: UUID
+    let userId: String
+    let productId: UUID
+    let roadmapId: UUID
+    var isPurchased: Bool
+    let createdAt: Date
+
+    // Joined product data
+    var product: Product?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case productId = "product_id"
+        case roadmapId = "roadmap_id"
+        case isPurchased = "is_purchased"
+        case createdAt = "created_at"
+        case product
+    }
 }

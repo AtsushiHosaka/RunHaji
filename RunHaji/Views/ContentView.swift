@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var hasCompletedOnboarding = UserSessionManager.shared.hasCompletedOnboarding
+    @AppStorage("current_user_id") private var storedUserId: String?
 
     var body: some View {
         Group {
-            if hasCompletedOnboarding {
+            if storedUserId != nil {
                 MainTabView()
             } else {
                 OnboardingView(onComplete: {
-                    hasCompletedOnboarding = true
+                    // Onboarding completion will save userId, triggering UI update
                 })
             }
         }

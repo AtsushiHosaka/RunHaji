@@ -35,6 +35,7 @@ struct MainTabView: View {
                     Label("設定", systemImage: "gearshape.fill")
                 }
         }
+        .tint(.accent)
     }
 }
 
