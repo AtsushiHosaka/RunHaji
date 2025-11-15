@@ -16,6 +16,16 @@ struct WorkoutReflection: Codable, Identifiable {
     let milestoneProgress: MilestoneProgress?
     let createdAt: Date
 
+    enum CodingKeys: String, CodingKey {
+        case id
+        case workoutSessionId = "workout_session_id"
+        case estimatedRPE = "estimated_rpe"
+        case reflection
+        case suggestions
+        case milestoneProgress = "milestone_progress"
+        case createdAt = "created_at"
+    }
+
     init(
         id: UUID = UUID(),
         workoutSessionId: UUID,
@@ -39,6 +49,12 @@ struct MilestoneProgress: Codable {
     let milestoneId: UUID?
     let isAchieved: Bool
     let achievementMessage: String
+
+    enum CodingKeys: String, CodingKey {
+        case milestoneId = "milestone_id"
+        case isAchieved = "is_achieved"
+        case achievementMessage = "achievement_message"
+    }
 
     init(milestoneId: UUID? = nil, isAchieved: Bool, achievementMessage: String) {
         self.milestoneId = milestoneId

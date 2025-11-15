@@ -302,8 +302,9 @@
 				DEVELOPMENT_TEAM = 93LJ9T3CBB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RunHaji/Info.plist;
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "運動強度の把握のためにHealthKitを利用します";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "運動強度測定のためにHealthKitを使っています";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "運動強度測定のためにHealthKitを使っています";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "位置情報を取得します";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -337,8 +338,9 @@
 				DEVELOPMENT_TEAM = 93LJ9T3CBB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RunHaji/Info.plist;
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "運動強度の把握のためにHealthKitを利用します";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "運動強度測定のためにHealthKitを使っています";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "運動強度測定のためにHealthKitを使っています";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "位置情報を取得します";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

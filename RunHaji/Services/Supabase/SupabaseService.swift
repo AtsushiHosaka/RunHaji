@@ -10,6 +10,13 @@ import Supabase
 
 // MARK: - Data Transfer Objects
 
+// Date formatter for ISO8601 timestamps
+private let iso8601Formatter: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter
+}()
+
 private struct UserProfileDTO: Codable {
     let user_id: String
     let email: String?
@@ -20,7 +27,21 @@ private struct UserProfileDTO: Codable {
     let ideal_frequency: Int?
     let current_frequency: Int?
     let goal: String?
-    let updated_at: Double
+    let updated_at: String
+}
+
+private struct UserProfileResponseDTO: Codable {
+    let user_id: String
+    let email: String?
+    let age: Int?
+    let height: Double?
+    let weight: Double?
+    let available_time_per_week: Int?
+    let ideal_frequency: Int?
+    let current_frequency: Int?
+    let goal: String?
+    let created_at: String
+    let updated_at: String
 }
 
 private struct RoadmapDTO: Codable {
@@ -28,8 +49,18 @@ private struct RoadmapDTO: Codable {
     let user_id: String
     let title: String
     let goal: String
-    let target_date: Double?
-    let updated_at: Double
+    let target_date: String?
+    let updated_at: String
+}
+
+private struct RoadmapResponseDTO: Codable {
+    let id: String
+    let user_id: String
+    let title: String
+    let goal: String
+    let target_date: String?
+    let created_at: String
+    let updated_at: String
 }
 
 private struct MilestoneDTO: Codable {
@@ -37,17 +68,29 @@ private struct MilestoneDTO: Codable {
     let roadmap_id: String
     let title: String
     let description: String?
-    let target_date: Double?
+    let target_date: String?
     let is_completed: Bool
-    let completed_at: Double?
-    let updated_at: Double
+    let completed_at: String?
+    let updated_at: String
+}
+
+private struct MilestoneResponseDTO: Codable {
+    let id: String
+    let roadmap_id: String
+    let title: String
+    let description: String?
+    let target_date: String?
+    let is_completed: Bool
+    let completed_at: String?
+    let created_at: String
+    let updated_at: String
 }
 
 private struct WorkoutSessionDTO: Codable {
     let id: String
     let user_id: String
-    let start_date: Double
-    let end_date: Double
+    let start_date: String
+    let end_date: String
     let duration: Double
     let distance: Double
     let calories: Double
@@ -110,7 +153,7 @@ final class SupabaseService {
             ideal_frequency: user.profile.idealFrequency,
             current_frequency: user.profile.currentFrequency,
             goal: user.profile.goal?.rawValue,
-            updated_at: Date().timeIntervalSince1970
+            updated_at: iso8601Formatter.string(from: Date())
         )
 
         try await client.database
@@ -128,7 +171,6 @@ final class SupabaseService {
             .from("user_profiles")
             .select()
             .eq("user_id", value: userId.uuidString)
-            .single()
             .execute()
 
         guard !response.data.isEmpty else {
@@ -136,8 +178,35 @@ final class SupabaseService {
         }
 
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return try decoder.decode(User.self, from: response.data)
+        // Don't use convertFromSnakeCase since DTO already uses snake_case keys
+        decoder.dateDecodingStrategy = .iso8601
+
+        let profiles = try decoder.decode([UserProfileResponseDTO].self, from: response.data)
+        guard let dto = profiles.first else {
+            return nil
+        }
+
+        // Convert DTO to User model
+        let createdAt = iso8601Formatter.date(from: dto.created_at) ?? Date()
+        let updatedAt = iso8601Formatter.date(from: dto.updated_at) ?? Date()
+
+        let profile = UserProfile(
+            age: dto.age,
+            height: dto.height,
+            weight: dto.weight,
+            availableTimePerWeek: dto.available_time_per_week,
+            idealFrequency: dto.ideal_frequency,
+            currentFrequency: dto.current_frequency,
+            goal: dto.goal.flatMap { RunningGoal(rawValue: $0) },
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+
+        return User(
+            id: UUID(uuidString: dto.user_id) ?? userId,
+            email: dto.email,
+            profile: profile
+        )
     }
 
     // MARK: - Roadmap Management
@@ -153,8 +222,8 @@ final class SupabaseService {
             user_id: roadmap.userId,
             title: roadmap.title,
             goal: roadmap.goal.rawValue,
-            target_date: roadmap.targetDate?.timeIntervalSince1970,
-            updated_at: Date().timeIntervalSince1970
+            target_date: roadmap.targetDate.map { iso8601Formatter.string(from: $0) },
+            updated_at: iso8601Formatter.string(from: Date())
         )
 
         try await client.database
@@ -178,10 +247,10 @@ final class SupabaseService {
             roadmap_id: roadmapId.uuidString,
             title: milestone.title,
             description: milestone.description,
-            target_date: milestone.targetDate?.timeIntervalSince1970,
+            target_date: milestone.targetDate.map { iso8601Formatter.string(from: $0) },
             is_completed: milestone.isCompleted,
-            completed_at: milestone.completedAt?.timeIntervalSince1970,
-            updated_at: Date().timeIntervalSince1970
+            completed_at: milestone.completedAt.map { iso8601Formatter.string(from: $0) },
+            updated_at: iso8601Formatter.string(from: Date())
         )
 
         try await client.database
@@ -200,7 +269,6 @@ final class SupabaseService {
             .from("roadmaps")
             .select()
             .eq("user_id", value: userId)
-            .single()
             .execute()
 
         let roadmapData = roadmapResponse.data
@@ -210,22 +278,54 @@ final class SupabaseService {
 
         // Parse roadmap
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        var roadmap = try decoder.decode(Roadmap.self, from: roadmapData)
+        decoder.dateDecodingStrategy = .iso8601
+        let roadmapDTOs = try decoder.decode([RoadmapResponseDTO].self, from: roadmapData)
+        guard let roadmapDTO = roadmapDTOs.first else {
+            return nil
+        }
+
+        // Convert DTO to Roadmap model
+        let roadmapId = UUID(uuidString: roadmapDTO.id) ?? UUID()
+        let createdAt = iso8601Formatter.date(from: roadmapDTO.created_at) ?? Date()
+        let updatedAt = iso8601Formatter.date(from: roadmapDTO.updated_at) ?? Date()
+        let targetDate = roadmapDTO.target_date.flatMap { iso8601Formatter.date(from: $0) }
+        let goal = RunningGoal(rawValue: roadmapDTO.goal) ?? .healthImprovement
 
         // Fetch milestones
         let milestonesResponse = try await client.database
             .from("milestones")
             .select()
-            .eq("roadmap_id", value: roadmap.id.uuidString)
+            .eq("roadmap_id", value: roadmapId.uuidString)
             .order("created_at")
             .execute()
 
+        var milestones: [Milestone] = []
         let milestonesData = milestonesResponse.data
         if !milestonesData.isEmpty {
-            let milestones = try decoder.decode([Milestone].self, from: milestonesData)
-            roadmap.milestones = milestones
+            let milestoneDTOs = try decoder.decode([MilestoneResponseDTO].self, from: milestonesData)
+            milestones = milestoneDTOs.map { dto in
+                Milestone(
+                    id: UUID(uuidString: dto.id) ?? UUID(),
+                    title: dto.title,
+                    description: dto.description,
+                    targetDate: dto.target_date.flatMap { iso8601Formatter.date(from: $0) },
+                    isCompleted: dto.is_completed,
+                    completedAt: dto.completed_at.flatMap { iso8601Formatter.date(from: $0) },
+                    workouts: []
+                )
+            }
         }
+
+        let roadmap = Roadmap(
+            id: roadmapId,
+            userId: roadmapDTO.user_id,
+            title: roadmapDTO.title,
+            goal: goal,
+            targetDate: targetDate,
+            milestones: milestones,
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
 
         return roadmap
     }
@@ -240,8 +340,8 @@ final class SupabaseService {
         let dto = WorkoutSessionDTO(
             id: session.id.uuidString,
             user_id: session.userId,
-            start_date: session.startDate.timeIntervalSince1970,
-            end_date: session.endDate.timeIntervalSince1970,
+            start_date: iso8601Formatter.string(from: session.startDate),
+            end_date: iso8601Formatter.string(from: session.endDate),
             duration: session.duration,
             distance: session.distance,
             calories: session.calories,
@@ -273,7 +373,7 @@ final class SupabaseService {
         }
 
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode([WorkoutSession].self, from: data)
     }
 
@@ -324,7 +424,7 @@ final class SupabaseService {
         }
 
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode([WorkoutReflection].self, from: data)
     }
 
@@ -368,7 +468,7 @@ final class SupabaseService {
         }
 
         let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
         return try decoder.decode([UpcomingWorkout].self, from: data)
     }
 

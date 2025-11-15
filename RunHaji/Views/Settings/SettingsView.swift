@@ -74,20 +74,20 @@ struct SettingsView: View {
                 // Danger Zone
                 Section {
                     Button(role: .destructive) {
-                        viewModel.showingLogoutAlert = true
+                        viewModel.showingDeleteAlert = true
                     } label: {
-                        Text("ログアウト")
+                        Text("データを削除してリセット")
                     }
                 }
             }
             .navigationTitle("設定")
-            .alert("ログアウト", isPresented: $viewModel.showingLogoutAlert) {
+            .alert("データを削除", isPresented: $viewModel.showingDeleteAlert) {
                 Button("キャンセル", role: .cancel) { }
-                Button("ログアウト", role: .destructive) {
-                    viewModel.logout()
+                Button("削除", role: .destructive) {
+                    viewModel.deleteAllData()
                 }
             } message: {
-                Text("本当にログアウトしますか？")
+                Text("全てのデータ（ロードマップ、ワークアウト履歴、プロフィール）が削除され、オンボーディング画面に戻ります。本当によろしいですか？")
             }
             .alert("エラー", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
