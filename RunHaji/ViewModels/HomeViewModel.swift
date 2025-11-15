@@ -183,13 +183,13 @@ class HomeViewModel: ObservableObject {
     }
 
     func saveUpcomingWorkouts() {
-        guard let userId = user?.id.uuidString else { return }
+        guard let userId = UserSessionManager.shared.storedUserId else { return }
 
         // Save to Supabase
         Task {
             do {
                 for workout in upcomingWorkouts {
-                    try await SupabaseService.shared.saveUpcomingWorkout(workout, userId: userId)
+                    try await SupabaseService.shared.saveUpcomingWorkout(workout, userId: userId.uuidString)
                 }
                 print("Upcoming workouts saved to Supabase successfully")
             } catch {
