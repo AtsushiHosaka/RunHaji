@@ -19,22 +19,9 @@
 		6D9608C12EC5A106009E2240 /* RunHaji.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RunHaji.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		6D5C98272EC81CFA00D77E79 /* Exceptions for "RunHaji" folder in "RunHaji" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 6D9608C02EC5A106009E2240 /* RunHaji */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6D9608C32EC5A106009E2240 /* RunHaji */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				6D5C98272EC81CFA00D77E79 /* Exceptions for "RunHaji" folder in "RunHaji" target */,
-			);
 			path = RunHaji;
 			sourceTree = "<group>";
 		};
