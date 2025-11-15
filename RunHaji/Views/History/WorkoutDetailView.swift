@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct WorkoutDetailView: View {
     let session: WorkoutSession
@@ -60,30 +61,30 @@ struct WorkoutDetailView: View {
     private var statsGrid: some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
             StatCard(
+                icon: "ruler",
                 title: "距離",
                 value: formatDistance(session.distance),
-                icon: "ruler",
                 color: .blue
             )
             
             StatCard(
+                icon: "clock",
                 title: "時間",
                 value: formatDuration(session.duration),
-                icon: "clock",
                 color: .green
             )
             
             StatCard(
+                icon: "gauge",
                 title: "ペース",
                 value: formatPace(session.distance, session.duration),
-                icon: "gauge",
                 color: .orange
             )
             
             StatCard(
+                icon: "flame",
                 title: "カロリー",
                 value: formatCalories(session.calories),
-                icon: "flame",
                 color: .red
             )
         }
@@ -162,33 +163,6 @@ struct WorkoutDetailView: View {
     
     private func formatCalories(_ calories: Double) -> String {
         String(format: "%.0f kcal", calories)
-    }
-}
-
-struct StatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(color)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Text(value)
-                .font(.title3)
-                .fontWeight(.semibold)
-        }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 }
 
