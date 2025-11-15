@@ -20,6 +20,11 @@ struct MainTabView: View {
                     Label("ランニング", systemImage: "figure.run")
                 }
 
+            GearView()
+                .tabItem {
+                    Label("ギア", systemImage: "cart.fill")
+                }
+
             WorkoutHistoryView()
                 .tabItem {
                     Label("履歴", systemImage: "list.bullet")

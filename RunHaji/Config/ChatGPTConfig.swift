@@ -9,9 +9,11 @@ import Foundation
 
 struct ChatGPTConfig {
     static let apiKey: String? = {
-        guard let key = Bundle.main.object(forInfoDictionaryKey: "OPENAI_API_KEY") as? String,
+        guard let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
+              let config = NSDictionary(contentsOfFile: path),
+              let key = config["OPENAI_API_KEY"] as? String,
               !key.isEmpty,
-              key != "YOUR_OPENAI_API_KEY" else {
+              key.hasPrefix("sk-") else {
             return nil
         }
         return key

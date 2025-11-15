@@ -92,7 +92,7 @@ class HomeViewModel: ObservableObject {
             // Load upcoming workouts
             let loadedWorkouts = try await SupabaseService.shared.getUpcomingWorkouts(userId: userId.uuidString)
             if loadedWorkouts.isEmpty {
-                createDefaultUpcomingWorkouts()
+                await createDefaultUpcomingWorkouts()
             } else {
                 upcomingWorkouts = loadedWorkouts
             }
@@ -135,23 +135,30 @@ class HomeViewModel: ObservableObject {
         isLoading = false
     }
 
-    func createDefaultUpcomingWorkouts() {
-        upcomingWorkouts = [
-            UpcomingWorkout(
-                title: "初回ランニング",
-                estimatedDuration: 900, // 15 minutes
-                targetDistance: 1000, // 1km
-                notes: "ゆっくりしたペースで走りましょう"
-            ),
-            UpcomingWorkout(
-                title: "2回目のランニング",
-                estimatedDuration: 1200, // 20 minutes
-                targetDistance: 1500, // 1.5km
-                notes: "前回のペースを維持しましょう"
-            )
-        ]
+    func createDefaultUpcomingWorkouts() async {
+        guard let user = user, let roadmap = roadmap else {
+            errorMessage = "ユーザーまたはロードマップが見つかりません"
+            return
+        }
 
-        saveUpcomingWorkouts()
+        isLoading = true
+
+        do {
+            // Generate workouts using OpenAI
+            upcomingWorkouts = try await OpenAIService.shared.generateUpcomingWorkouts(
+                for: user,
+                roadmap: roadmap,
+                count: 3
+            )
+
+            // Save to Supabase
+            saveUpcomingWorkouts()
+        } catch {
+            print("Failed to generate workouts: \(error)")
+            errorMessage = "ワークアウトの生成に失敗しました: \(error.localizedDescription)"
+        }
+
+        isLoading = false
     }
 
     func saveRoadmap() {
