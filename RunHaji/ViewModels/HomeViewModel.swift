@@ -183,20 +183,48 @@ class HomeViewModel: ObservableObject {
     func saveRoadmap() {
         guard let roadmap = roadmap else { return }
 
+        // Save to UserDefaults (for offline access)
         do {
             let data = try encoder.encode(roadmap)
             UserDefaults.standard.set(data, forKey: "user_roadmap")
         } catch {
             errorMessage = "ロードマップの保存に失敗しました: \(error.localizedDescription)"
+            return
+        }
+
+        // Save to Supabase (for cloud sync)
+        Task {
+            do {
+                try await SupabaseService.shared.saveRoadmap(roadmap)
+                print("Roadmap saved to Supabase successfully")
+            } catch {
+                print("Failed to save roadmap to Supabase: \(error.localizedDescription)")
+            }
         }
     }
 
     func saveUpcomingWorkouts() {
+        // Save to UserDefaults (for offline access)
         do {
             let data = try encoder.encode(upcomingWorkouts)
             UserDefaults.standard.set(data, forKey: "upcoming_workouts")
         } catch {
             errorMessage = "予定の保存に失敗しました: \(error.localizedDescription)"
+            return
+        }
+
+        // Save to Supabase (for cloud sync)
+        guard let userId = user?.id.uuidString else { return }
+
+        Task {
+            do {
+                for workout in upcomingWorkouts {
+                    try await SupabaseService.shared.saveUpcomingWorkout(workout, userId: userId)
+                }
+                print("Upcoming workouts saved to Supabase successfully")
+            } catch {
+                print("Failed to save upcoming workouts to Supabase: \(error.localizedDescription)")
+            }
         }
     }
 

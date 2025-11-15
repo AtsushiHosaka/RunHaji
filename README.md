@@ -69,9 +69,21 @@ RunHaji/
 - **マイルストーン自動判定**: ワークアウトデータに基づいて、マイルストーンの達成状況を自動判定
 - **パーソナライズドロードマップ**: ユーザーの目標に合わせたランニングプランを提供
 
+## Supabaseセットアップ
+
+### データベーススキーマの作成
+
+1. [Supabase](https://supabase.com)でプロジェクトを作成
+2. SQL Editorで`../SUPABASE_SCHEMA.md`のSQLスクリプトを実行
+3. Row Level Security (RLS)が有効になっていることを確認
+4. プロジェクトURLとAnon KeyをInfo.plistに設定
+
+詳細なスキーマ設計は`../SUPABASE_SCHEMA.md`を参照してください。
+
 ## 開発
 
 詳細な開発ルールとタスク一覧は以下を参照してください：
 - `../CLAUDE.md`: 開発ルール、アーキテクチャ、Git運用方針
 - `../tasks.md`: 実装タスク一覧
+- `../SUPABASE_SCHEMA.md`: データベーススキーマ設計
 

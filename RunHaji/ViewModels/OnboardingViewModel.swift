@@ -76,13 +76,19 @@ class OnboardingViewModel: ObservableObject {
 
         let user = User(profile: profile)
 
-        // Save to UserDefaults (temporary - will be saved to Supabase later)
+        // Save to UserDefaults (for offline access)
         let encoder = JSONEncoder()
         let encoded = try encoder.encode(user)
         UserDefaults.standard.set(encoded, forKey: "user_profile")
 
-        // TODO: Save to Supabase
-        // try await SupabaseService.shared.saveUserProfile(...)
+        // Save to Supabase (for cloud sync)
+        do {
+            try await SupabaseService.shared.saveUserProfile(user)
+            print("User profile saved to Supabase successfully")
+        } catch {
+            // Log error but don't fail onboarding if Supabase is not configured
+            print("Failed to save user profile to Supabase: \(error.localizedDescription)")
+        }
 
         isCompleted = true
     }
