@@ -58,7 +58,7 @@ final class ChatGPTService {
         let chatRequest = ChatRequest(
             model: ChatGPTConfig.model,
             messages: messages,
-            temperature: 0.7,
+            temperature: 1.0,
             response_format: useJSON ? ChatRequest.ResponseFormat(type: "json_object") : nil
         )
 
