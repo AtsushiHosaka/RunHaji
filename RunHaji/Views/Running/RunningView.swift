@@ -10,8 +10,9 @@ import SwiftUI
 struct RunningView: View {
     @StateObject private var viewModel: RunningViewModel
 
-    init(healthKitManager: HealthKitManager = HealthKitManager()) {
-        _viewModel = StateObject(wrappedValue: RunningViewModel(healthKitManager: healthKitManager))
+    init() {
+        // Use default HealthKitManager
+        _viewModel = StateObject(wrappedValue: RunningViewModel(healthKitManager: HealthKitManager()))
     }
 
     var body: some View {

@@ -17,15 +17,7 @@ class HomeViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    private let decoder = JSONDecoder()
-    private let encoder = JSONEncoder()
-
     init() {
-        loadUserData()
-        loadRoadmap()
-        loadUpcomingWorkouts()
-        loadRecentSessions()
-
         // Listen for workout reflection saved notifications
         NotificationCenter.default.addObserver(
             forName: NSNotification.Name("WorkoutReflectionSaved"),
@@ -33,8 +25,15 @@ class HomeViewModel: ObservableObject {
             queue: .main
         ) { [weak self] notification in
             if let reflection = notification.userInfo?["reflection"] as? WorkoutReflection {
-                self?.updateMilestoneFromReflection(reflection)
+                Task { @MainActor in
+                    self?.updateMilestoneFromReflection(reflection)
+                }
             }
+        }
+
+        // Load data asynchronously
+        Task {
+            await loadAllData()
         }
     }
 
@@ -67,58 +66,46 @@ class HomeViewModel: ObservableObject {
         }
     }
 
-    func loadUserData() {
-        guard let data = UserDefaults.standard.data(forKey: "user_profile") else {
+    /// Load all data from Supabase
+    func loadAllData() async {
+        guard let userId = UserSessionManager.shared.storedUserId else {
+            // User hasn't completed onboarding
             return
         }
 
-        do {
-            user = try decoder.decode(User.self, from: data)
-        } catch {
-            errorMessage = "ユーザーデータの読み込みに失敗しました: \(error.localizedDescription)"
-        }
-    }
-
-    func loadRoadmap() {
-        // Load from UserDefaults for now
-        guard let data = UserDefaults.standard.data(forKey: "user_roadmap") else {
-            // Create default roadmap if none exists
-            createDefaultRoadmap()
-            return
-        }
+        isLoading = true
+        errorMessage = nil
 
         do {
-            roadmap = try decoder.decode(Roadmap.self, from: data)
+            // Load user profile
+            user = try await SupabaseService.shared.getUserProfile(userId: userId)
+
+            // Load roadmap
+            if let loadedRoadmap = try await SupabaseService.shared.getRoadmap(userId: userId.uuidString) {
+                roadmap = loadedRoadmap
+            } else {
+                // Create default roadmap if none exists
+                createDefaultRoadmap()
+            }
+
+            // Load upcoming workouts
+            let loadedWorkouts = try await SupabaseService.shared.getUpcomingWorkouts(userId: userId.uuidString)
+            if loadedWorkouts.isEmpty {
+                createDefaultUpcomingWorkouts()
+            } else {
+                upcomingWorkouts = loadedWorkouts
+            }
+
+            // Load recent workout sessions
+            let sessions = try await SupabaseService.shared.getWorkoutSessions(userId: userId.uuidString, limit: 5)
+            recentSessions = sessions
+
         } catch {
-            errorMessage = "ロードマップの読み込みに失敗しました: \(error.localizedDescription)"
-        }
-    }
-
-    func loadUpcomingWorkouts() {
-        guard let data = UserDefaults.standard.data(forKey: "upcoming_workouts") else {
-            // Create default upcoming workouts
-            createDefaultUpcomingWorkouts()
-            return
+            errorMessage = "データの読み込みに失敗しました: \(error.localizedDescription)"
+            print("Failed to load data from Supabase: \(error)")
         }
 
-        do {
-            upcomingWorkouts = try decoder.decode([UpcomingWorkout].self, from: data)
-        } catch {
-            errorMessage = "予定の読み込みに失敗しました: \(error.localizedDescription)"
-        }
-    }
-
-    func loadRecentSessions() {
-        guard let data = UserDefaults.standard.data(forKey: "workout_sessions") else {
-            return
-        }
-
-        do {
-            let sessions = try decoder.decode([WorkoutSession].self, from: data)
-            recentSessions = Array(sessions.sorted(by: { $0.startDate > $1.startDate }).prefix(5))
-        } catch {
-            errorMessage = "ワークアウト履歴の読み込みに失敗しました: \(error.localizedDescription)"
-        }
+        isLoading = false
     }
 
     func createDefaultRoadmap() {
@@ -183,46 +170,30 @@ class HomeViewModel: ObservableObject {
     func saveRoadmap() {
         guard let roadmap = roadmap else { return }
 
-        // Save to UserDefaults (for offline access)
-        do {
-            let data = try encoder.encode(roadmap)
-            UserDefaults.standard.set(data, forKey: "user_roadmap")
-        } catch {
-            errorMessage = "ロードマップの保存に失敗しました: \(error.localizedDescription)"
-            return
-        }
-
-        // Save to Supabase (for cloud sync)
+        // Save to Supabase
         Task {
             do {
                 try await SupabaseService.shared.saveRoadmap(roadmap)
                 print("Roadmap saved to Supabase successfully")
             } catch {
+                errorMessage = "ロードマップの保存に失敗しました: \(error.localizedDescription)"
                 print("Failed to save roadmap to Supabase: \(error.localizedDescription)")
             }
         }
     }
 
     func saveUpcomingWorkouts() {
-        // Save to UserDefaults (for offline access)
-        do {
-            let data = try encoder.encode(upcomingWorkouts)
-            UserDefaults.standard.set(data, forKey: "upcoming_workouts")
-        } catch {
-            errorMessage = "予定の保存に失敗しました: \(error.localizedDescription)"
-            return
-        }
+        guard let userId = UserSessionManager.shared.storedUserId else { return }
 
-        // Save to Supabase (for cloud sync)
-        guard let userId = user?.id.uuidString else { return }
-
+        // Save to Supabase
         Task {
             do {
                 for workout in upcomingWorkouts {
-                    try await SupabaseService.shared.saveUpcomingWorkout(workout, userId: userId)
+                    try await SupabaseService.shared.saveUpcomingWorkout(workout, userId: userId.uuidString)
                 }
                 print("Upcoming workouts saved to Supabase successfully")
             } catch {
+                errorMessage = "予定の保存に失敗しました: \(error.localizedDescription)"
                 print("Failed to save upcoming workouts to Supabase: \(error.localizedDescription)")
             }
         }
@@ -240,15 +211,7 @@ class HomeViewModel: ObservableObject {
     }
 
     func refresh() async {
-        isLoading = true
-        loadUserData()
-        loadRoadmap()
-        loadUpcomingWorkouts()
-        loadRecentSessions()
-
-        // Simulate network delay
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        isLoading = false
+        await loadAllData()
     }
 
     /// ワークアウト振り返りを受け取ってマイルストーンを自動更新
