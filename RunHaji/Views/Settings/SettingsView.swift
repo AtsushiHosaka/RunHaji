@@ -31,7 +31,7 @@ struct SettingsView: View {
                             Text("目標設定")
                             Spacer()
                             if let goal = viewModel.user?.profile.goal {
-                                Text(goal.displayName)
+                                Text(goal.description)
                                     .foregroundColor(.secondary)
                             }
                         }
