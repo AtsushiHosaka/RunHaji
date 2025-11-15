@@ -56,8 +56,8 @@ class SettingsViewModel: ObservableObject {
                 currentFrequency: user?.profile.currentFrequency,
                 goal: selectedGoal
             )
-            
-            let updatedUser = User(id: userId, profile: profile)
+
+            let updatedUser = User(id: userId, email: user?.email, profile: profile)
             try await SupabaseService.shared.saveUserProfile(updatedUser)
             
             user = updatedUser

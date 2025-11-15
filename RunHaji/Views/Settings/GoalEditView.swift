@@ -19,10 +19,10 @@ struct GoalEditView: View {
                 } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(goal.displayName)
+                            Text(goal.rawValue)
                                 .font(.headline)
                                 .foregroundColor(.primary)
-                            
+
                             Text(goal.description)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
