@@ -14,7 +14,9 @@ class HomeViewModel: ObservableObject {
     @Published var roadmap: Roadmap?
     @Published var upcomingWorkouts: [UpcomingWorkout] = []
     @Published var recentSessions: [WorkoutSession] = []
+    @Published var userProducts: [UserProduct] = []
     @Published var isLoading = false
+    @Published var isGeneratingRoadmap = false
     @Published var errorMessage: String?
     @Published var showErrorAlert = false
 
@@ -84,8 +86,11 @@ class HomeViewModel: ObservableObject {
             // Load roadmap
             if let loadedRoadmap = try await SupabaseService.shared.getRoadmap(userId: userId.uuidString) {
                 roadmap = loadedRoadmap
+                // Load user products for existing roadmap
+                await loadUserProducts()
             } else {
                 // Create default roadmap if none exists
+                // (This will automatically load products via Edge Function)
                 await createDefaultRoadmap()
             }
 
@@ -117,22 +122,87 @@ class HomeViewModel: ObservableObject {
         }
 
         isLoading = true
+        isGeneratingRoadmap = true
         errorMessage = nil
         showErrorAlert = false
 
         do {
-            // Generate roadmap using OpenAI
-            roadmap = try await OpenAIService.shared.generateRoadmap(for: user)
+            print("🚀 Initializing roadmap via Edge Function...")
 
-            // Save to Supabase
-            saveRoadmap()
+            // Call Edge Function to generate everything (roadmap + gear + workouts)
+            let roadmapId = try await SupabaseService.shared.initializeRoadmap(user: user)
+
+            print("✅ Roadmap initialized with ID: \(roadmapId)")
+
+            // Load the created roadmap from Supabase
+            if let userId = UserSessionManager.shared.storedUserId {
+                roadmap = try await SupabaseService.shared.getRoadmap(userId: userId.uuidString)
+            }
+
+            // Wait a moment for all data to be committed
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+            // Load all generated data
+            await loadUserProducts()
+            await loadUpcomingWorkouts()
+
+            print("✅ All data loaded successfully")
         } catch {
-            print("Failed to generate roadmap: \(error)")
+            print("❌ Failed to initialize roadmap: \(error)")
             errorMessage = "ロードマップの生成に失敗しました。\n\(error.localizedDescription)\n\nもう一度お試しください。"
             showErrorAlert = true
         }
 
         isLoading = false
+        isGeneratingRoadmap = false
+    }
+
+    private func loadUpcomingWorkouts() async {
+        guard let userId = UserSessionManager.shared.storedUserId else {
+            return
+        }
+
+        do {
+            upcomingWorkouts = try await SupabaseService.shared.getUpcomingWorkouts(userId: userId.uuidString)
+            print("✅ Loaded \(upcomingWorkouts.count) upcoming workouts")
+        } catch {
+            print("❌ Failed to load upcoming workouts: \(error)")
+        }
+    }
+
+    /// Call Edge Function to generate gear recommendations
+    private func requestGearRecommendations(roadmapId: UUID) async {
+        guard let user = user,
+              let userId = UserSessionManager.shared.storedUserId else {
+            return
+        }
+
+        do {
+            try await SupabaseService.shared.requestGearRecommendations(
+                userId: userId.uuidString,
+                roadmapId: roadmapId,
+                userAge: user.profile.age,
+                userGoal: user.profile.goal?.rawValue,
+                userIdealFrequency: user.profile.idealFrequency,
+                userCurrentFrequency: user.profile.currentFrequency,
+                roadmapGoal: roadmap?.goal.rawValue ?? "健康改善"
+            )
+
+            print("✅ Gear recommendations generated successfully")
+
+            // Wait a moment for database to commit
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+
+            // Reload user products after recommendations are generated
+            await loadUserProducts()
+
+            print("✅ Loaded \(userProducts.count) user products after Edge Function")
+        } catch {
+            print("❌ Failed to generate gear recommendations: \(error)")
+            print("Error details: \(String(describing: error))")
+            // Still try to load products in case some exist
+            await loadUserProducts()
+        }
     }
 
     func createDefaultUpcomingWorkouts() async {
@@ -228,5 +298,62 @@ class HomeViewModel: ObservableObject {
             self.roadmap = roadmap
             saveRoadmap()
         }
+    }
+
+    // MARK: - Product Management
+
+    /// Load user's products for the current roadmap
+    func loadUserProducts() async {
+        guard let userId = UserSessionManager.shared.storedUserId,
+              let roadmapId = roadmap?.id else {
+            print("⚠️ Cannot load products: userId or roadmapId is nil")
+            return
+        }
+
+        print("🔍 Loading user products for userId=\(userId), roadmapId=\(roadmapId)")
+
+        do {
+            userProducts = try await SupabaseService.shared.getUserProducts(
+                userId: userId.uuidString,
+                roadmapId: roadmapId
+            )
+            print("✅ Loaded \(userProducts.count) user products")
+
+            // Debug: print each product
+            for (index, userProduct) in userProducts.enumerated() {
+                print("  [\(index)] \(userProduct.product?.title ?? "Unknown") - purchased: \(userProduct.isPurchased)")
+            }
+        } catch {
+            print("❌ Failed to load user products: \(error)")
+            print("   Error type: \(type(of: error))")
+            print("   Error details: \(String(describing: error))")
+            errorMessage = "ギアの読み込みに失敗しました: \(error.localizedDescription)"
+        }
+    }
+
+    /// Toggle product purchase status
+    func toggleProductPurchase(userProductId: UUID) async {
+        guard let index = userProducts.firstIndex(where: { $0.id == userProductId }) else {
+            return
+        }
+
+        let newStatus = !userProducts[index].isPurchased
+
+        do {
+            try await SupabaseService.shared.updateProductPurchaseStatus(
+                userProductId: userProductId,
+                isPurchased: newStatus
+            )
+
+            // Update local state
+            userProducts[index].isPurchased = newStatus
+        } catch {
+            print("Failed to update purchase status: \(error)")
+            errorMessage = "購入状態の更新に失敗しました"
+        }
+    }
+
+    var currentMilestone: Milestone? {
+        roadmap?.milestones.first(where: { !$0.isCompleted })
     }
 }

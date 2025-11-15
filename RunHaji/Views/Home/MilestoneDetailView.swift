@@ -13,28 +13,35 @@ struct MilestoneDetailView: View {
     @StateObject private var viewModel = GearViewModel()
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Header
-                headerSection
+        ZStack {
+            // Background gradient
+            LinearGradient.appGradient
+                .ignoresSafeArea()
+                .opacity(0.1)
 
-                // Progress
-                if !milestone.isCompleted {
-                    progressSection
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Header
+                    headerSection
+
+                    // Progress
+                    if !milestone.isCompleted {
+                        progressSection
+                    }
+
+                    // Description
+                    if let description = milestone.description {
+                        descriptionSection(description)
+                    }
+
+                    // Recommended Products
+                    recommendedProductsSection
+
+                    // Tips
+                    tipsSection
                 }
-
-                // Description
-                if let description = milestone.description {
-                    descriptionSection(description)
-                }
-
-                // Recommended Products
-                recommendedProductsSection
-
-                // Tips
-                tipsSection
+                .padding()
             }
-            .padding()
         }
         .navigationTitle(milestone.title)
         .navigationBarTitleDisplayMode(.large)
@@ -45,10 +52,10 @@ struct MilestoneDetailView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
+            HStack(spacing: 16) {
                 Image(systemName: milestone.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.title)
-                    .foregroundColor(milestone.isCompleted ? .green : .gray)
+                    .font(.system(size: 40))
+                    .foregroundColor(milestone.isCompleted ? .accent : .gray.opacity(0.3))
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(milestone.title)
@@ -64,12 +71,14 @@ struct MilestoneDetailView: View {
                         .foregroundColor(.secondary)
                     }
                 }
+
+                Spacer()
             }
 
             if milestone.isCompleted, let completedAt = milestone.completedAt {
                 HStack {
                     Image(systemName: "star.fill")
-                        .foregroundColor(.yellow)
+                        .foregroundColor(.accent)
                     Text("達成日: \(formattedDate(completedAt))")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
@@ -77,10 +86,11 @@ struct MilestoneDetailView: View {
                 .padding(.top, 8)
             }
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(Color.cardBackground)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 4)
     }
 
     private var progressSection: some View {
@@ -96,17 +106,29 @@ struct MilestoneDetailView: View {
                 if let targetDate = milestone.targetDate {
                     let daysRemaining = Calendar.current.dateComponents([.day], from: Date(), to: targetDate).day ?? 0
                     if daysRemaining > 0 {
-                        Text("目標まで残り\(daysRemaining)日")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.blue)
+                        HStack(spacing: 8) {
+                            Image(systemName: "clock")
+                                .foregroundColor(.accent)
+                            Text("目標まで残り\(daysRemaining)日")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.accent.opacity(0.1))
+                        .cornerRadius(8)
                     }
                 }
             }
         }
-        .padding()
-        .background(Color.blue.opacity(0.1))
-        .cornerRadius(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(
+            LinearGradient.appGradient
+                .opacity(0.15)
+        )
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
 
     private func descriptionSection(_ description: String) -> some View {
@@ -117,11 +139,13 @@ struct MilestoneDetailView: View {
             Text(description)
                 .font(.body)
                 .foregroundColor(.secondary)
+                .lineSpacing(4)
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(Color.cardBackground)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
 
     private var recommendedProductsSection: some View {
@@ -134,6 +158,7 @@ struct MilestoneDetailView: View {
                     GearView()
                 }
                 .font(.subheadline)
+                .foregroundColor(.accent)
             }
 
             Text("このマイルストーン達成に役立つアイテム")
@@ -145,10 +170,16 @@ struct MilestoneDetailView: View {
                     // Show 2-3 recommended products
                     ForEach(recommendedProducts().prefix(3)) { product in
                         ProductCard(product: product)
+                            .frame(width: 200)
                     }
                 }
+                .padding(.vertical, 4)
             }
         }
+        .padding(20)
+        .background(Color.cardBackground)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
 
     private var tipsSection: some View {
@@ -174,10 +205,10 @@ struct MilestoneDetailView: View {
                 )
             }
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .padding(20)
+        .background(Color.cardBackground)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
 
     private func recommendedProducts() -> [Product] {
