@@ -8,6 +8,72 @@
 import Foundation
 import Supabase
 
+// MARK: - Data Transfer Objects
+
+private struct UserProfileDTO: Codable {
+    let user_id: String
+    let email: String?
+    let age: Int?
+    let height: Double?
+    let weight: Double?
+    let available_time_per_week: Int?
+    let ideal_frequency: Int?
+    let current_frequency: Int?
+    let goal: String?
+    let updated_at: Double
+}
+
+private struct RoadmapDTO: Codable {
+    let id: String
+    let user_id: String
+    let title: String
+    let goal: String
+    let target_date: Double?
+    let updated_at: Double
+}
+
+private struct MilestoneDTO: Codable {
+    let id: String
+    let roadmap_id: String
+    let title: String
+    let description: String?
+    let target_date: Double?
+    let is_completed: Bool
+    let completed_at: Double?
+    let updated_at: Double
+}
+
+private struct WorkoutSessionDTO: Codable {
+    let id: String
+    let user_id: String
+    let start_date: Double
+    let end_date: Double
+    let duration: Double
+    let distance: Double
+    let calories: Double
+    let rpe: Int?
+}
+
+private struct WorkoutReflectionDTO: Codable {
+    let id: String
+    let workout_session_id: String
+    let estimated_rpe: Int
+    let reflection: String
+    let suggestions: String
+    let milestone_id: String?
+    let is_milestone_achieved: Bool
+    let achievement_message: String?
+}
+
+private struct UpcomingWorkoutDTO: Codable {
+    let id: String
+    let user_id: String
+    let title: String
+    let estimated_duration: Double
+    let target_distance: Double?
+    let notes: String?
+}
+
 final class SupabaseService {
     static let shared = SupabaseService()
 
@@ -33,23 +99,23 @@ final class SupabaseService {
             throw SupabaseError.notConfigured
         }
 
-        // Convert User model to database format
-        let profileData: [String: Any] = [
-            "user_id": user.id.uuidString,
-            "email": user.email ?? NSNull(),
-            "age": user.profile.age ?? NSNull(),
-            "height": user.profile.height ?? NSNull(),
-            "weight": user.profile.weight ?? NSNull(),
-            "available_time_per_week": user.profile.availableTimePerWeek ?? NSNull(),
-            "ideal_frequency": user.profile.idealFrequency ?? NSNull(),
-            "current_frequency": user.profile.currentFrequency ?? NSNull(),
-            "goal": user.profile.goal?.rawValue ?? NSNull(),
-            "updated_at": Date().timeIntervalSince1970
-        ]
+        // Convert User model to DTO
+        let dto = UserProfileDTO(
+            user_id: user.id.uuidString,
+            email: user.email,
+            age: user.profile.age,
+            height: user.profile.height,
+            weight: user.profile.weight,
+            available_time_per_week: user.profile.availableTimePerWeek,
+            ideal_frequency: user.profile.idealFrequency,
+            current_frequency: user.profile.currentFrequency,
+            goal: user.profile.goal?.rawValue,
+            updated_at: Date().timeIntervalSince1970
+        )
 
         try await client.database
             .from("user_profiles")
-            .upsert(profileData)
+            .upsert(dto)
             .execute()
     }
 
@@ -65,13 +131,13 @@ final class SupabaseService {
             .single()
             .execute()
 
-        guard let data = response.data else {
+        guard !response.data.isEmpty else {
             return nil
         }
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return try decoder.decode(User.self, from: data)
+        return try decoder.decode(User.self, from: response.data)
     }
 
     // MARK: - Roadmap Management
@@ -81,19 +147,19 @@ final class SupabaseService {
             throw SupabaseError.notConfigured
         }
 
-        // Save roadmap
-        let roadmapData: [String: Any] = [
-            "id": roadmap.id.uuidString,
-            "user_id": roadmap.userId,
-            "title": roadmap.title,
-            "goal": roadmap.goal.rawValue,
-            "target_date": roadmap.targetDate?.timeIntervalSince1970 ?? NSNull(),
-            "updated_at": Date().timeIntervalSince1970
-        ]
+        // Convert Roadmap to DTO
+        let dto = RoadmapDTO(
+            id: roadmap.id.uuidString,
+            user_id: roadmap.userId,
+            title: roadmap.title,
+            goal: roadmap.goal.rawValue,
+            target_date: roadmap.targetDate?.timeIntervalSince1970,
+            updated_at: Date().timeIntervalSince1970
+        )
 
         try await client.database
             .from("roadmaps")
-            .upsert(roadmapData)
+            .upsert(dto)
             .execute()
 
         // Save milestones
@@ -107,20 +173,20 @@ final class SupabaseService {
             throw SupabaseError.notConfigured
         }
 
-        let milestoneData: [String: Any] = [
-            "id": milestone.id.uuidString,
-            "roadmap_id": roadmapId.uuidString,
-            "title": milestone.title,
-            "description": milestone.description ?? NSNull(),
-            "target_date": milestone.targetDate?.timeIntervalSince1970 ?? NSNull(),
-            "is_completed": milestone.isCompleted,
-            "completed_at": milestone.completedAt?.timeIntervalSince1970 ?? NSNull(),
-            "updated_at": Date().timeIntervalSince1970
-        ]
+        let dto = MilestoneDTO(
+            id: milestone.id.uuidString,
+            roadmap_id: roadmapId.uuidString,
+            title: milestone.title,
+            description: milestone.description,
+            target_date: milestone.targetDate?.timeIntervalSince1970,
+            is_completed: milestone.isCompleted,
+            completed_at: milestone.completedAt?.timeIntervalSince1970,
+            updated_at: Date().timeIntervalSince1970
+        )
 
         try await client.database
             .from("milestones")
-            .upsert(milestoneData)
+            .upsert(dto)
             .execute()
     }
 
@@ -137,7 +203,8 @@ final class SupabaseService {
             .single()
             .execute()
 
-        guard let roadmapData = roadmapResponse.data else {
+        let roadmapData = roadmapResponse.data
+        if roadmapData.isEmpty {
             return nil
         }
 
@@ -154,7 +221,8 @@ final class SupabaseService {
             .order("created_at")
             .execute()
 
-        if let milestonesData = milestonesResponse.data {
+        let milestonesData = milestonesResponse.data
+        if !milestonesData.isEmpty {
             let milestones = try decoder.decode([Milestone].self, from: milestonesData)
             roadmap.milestones = milestones
         }
@@ -169,20 +237,20 @@ final class SupabaseService {
             throw SupabaseError.notConfigured
         }
 
-        let sessionData: [String: Any] = [
-            "id": session.id.uuidString,
-            "user_id": session.userId,
-            "start_date": session.startDate.timeIntervalSince1970,
-            "end_date": session.endDate.timeIntervalSince1970,
-            "duration": session.duration,
-            "distance": session.distance,
-            "calories": session.calories,
-            "rpe": session.rpe ?? NSNull()
-        ]
+        let dto = WorkoutSessionDTO(
+            id: session.id.uuidString,
+            user_id: session.userId,
+            start_date: session.startDate.timeIntervalSince1970,
+            end_date: session.endDate.timeIntervalSince1970,
+            duration: session.duration,
+            distance: session.distance,
+            calories: session.calories,
+            rpe: session.rpe
+        )
 
         try await client.database
             .from("workout_sessions")
-            .upsert(sessionData)
+            .upsert(dto)
             .execute()
     }
 
@@ -199,7 +267,8 @@ final class SupabaseService {
             .limit(limit)
             .execute()
 
-        guard let data = response.data else {
+        let data = response.data
+        if data.isEmpty {
             return []
         }
 
@@ -215,20 +284,20 @@ final class SupabaseService {
             throw SupabaseError.notConfigured
         }
 
-        let reflectionData: [String: Any] = [
-            "id": reflection.id.uuidString,
-            "workout_session_id": reflection.workoutSessionId.uuidString,
-            "estimated_rpe": reflection.estimatedRPE,
-            "reflection": reflection.reflection,
-            "suggestions": reflection.suggestions,
-            "milestone_id": reflection.milestoneProgress?.milestoneId?.uuidString ?? NSNull(),
-            "is_milestone_achieved": reflection.milestoneProgress?.isAchieved ?? false,
-            "achievement_message": reflection.milestoneProgress?.achievementMessage ?? NSNull()
-        ]
+        let dto = WorkoutReflectionDTO(
+            id: reflection.id.uuidString,
+            workout_session_id: reflection.workoutSessionId.uuidString,
+            estimated_rpe: reflection.estimatedRPE,
+            reflection: reflection.reflection,
+            suggestions: reflection.suggestions,
+            milestone_id: reflection.milestoneProgress?.milestoneId?.uuidString,
+            is_milestone_achieved: reflection.milestoneProgress?.isAchieved ?? false,
+            achievement_message: reflection.milestoneProgress?.achievementMessage
+        )
 
         try await client.database
             .from("workout_reflections")
-            .upsert(reflectionData)
+            .upsert(dto)
             .execute()
     }
 
@@ -249,7 +318,8 @@ final class SupabaseService {
             .limit(limit)
             .execute()
 
-        guard let data = response.data else {
+        let data = response.data
+        if data.isEmpty {
             return []
         }
 
@@ -265,18 +335,18 @@ final class SupabaseService {
             throw SupabaseError.notConfigured
         }
 
-        let workoutData: [String: Any] = [
-            "id": workout.id.uuidString,
-            "user_id": userId,
-            "title": workout.title,
-            "estimated_duration": workout.estimatedDuration,
-            "target_distance": workout.targetDistance ?? NSNull(),
-            "notes": workout.notes ?? NSNull()
-        ]
+        let dto = UpcomingWorkoutDTO(
+            id: workout.id.uuidString,
+            user_id: userId,
+            title: workout.title,
+            estimated_duration: workout.estimatedDuration,
+            target_distance: workout.targetDistance,
+            notes: workout.notes
+        )
 
         try await client.database
             .from("upcoming_workouts")
-            .upsert(workoutData)
+            .upsert(dto)
             .execute()
     }
 
@@ -292,7 +362,8 @@ final class SupabaseService {
             .order("created_at")
             .execute()
 
-        guard let data = response.data else {
+        let data = response.data
+        if data.isEmpty {
             return []
         }
 
