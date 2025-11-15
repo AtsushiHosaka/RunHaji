@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import ConfettiSwiftUI
 
 struct ScoringView: View {
     @StateObject private var viewModel: ScoringViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var confettiCounter = 0
 
     let workoutStartDate: Date
     let workoutEndDate: Date
@@ -20,6 +22,7 @@ struct ScoringView: View {
     // User data for progress calculation
     let userGoal: RunningGoal?
     let idealFrequency: Int?
+    let currentMilestone: Milestone?
 
     init(
         healthKitManager: HealthKitManager,
@@ -30,7 +33,8 @@ struct ScoringView: View {
         duration: TimeInterval,
         calories: Double,
         userGoal: RunningGoal? = nil,
-        idealFrequency: Int? = nil
+        idealFrequency: Int? = nil,
+        currentMilestone: Milestone? = nil
     ) {
         _viewModel = StateObject(wrappedValue: ScoringViewModel(
             healthKitManager: healthKitManager,
@@ -43,6 +47,7 @@ struct ScoringView: View {
         self.calories = calories
         self.userGoal = userGoal
         self.idealFrequency = idealFrequency
+        self.currentMilestone = currentMilestone
     }
 
     var body: some View {
@@ -108,6 +113,7 @@ struct ScoringView: View {
                     successOverlay
                 }
             }
+            .confettiCannon(trigger: $confettiCounter)
             .alert("エラー", isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
@@ -504,14 +510,19 @@ struct ScoringView: View {
             // Only analyze if not already done
             guard viewModel.workoutReflection == nil && !viewModel.isAnalyzing else { return }
 
-            // Get current milestone from ViewModel
-            let currentMilestone: Milestone? = viewModel.loadCurrentMilestone()
-
             // Analyze workout with ChatGPT
             await viewModel.analyzeWorkout(
                 userGoal: userGoal,
                 currentMilestone: currentMilestone
             )
+
+            // Trigger confetti if milestone was achieved
+            if let reflection = viewModel.workoutReflection,
+               reflection.milestoneProgress?.isAchieved == true {
+                // Delay slightly for better UX
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                confettiCounter += 1
+            }
         }
     }
 
