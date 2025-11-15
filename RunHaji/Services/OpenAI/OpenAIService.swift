@@ -232,6 +232,7 @@ final class OpenAIService {
 
         return workoutData.workouts.map { workout in
             UpcomingWorkout(
+                userId: user.id.uuidString,
                 title: workout.title,
                 estimatedDuration: workout.estimatedDuration * 60, // minutes to seconds
                 targetDistance: workout.targetDistance.map { $0 * 1000 }, // km to meters

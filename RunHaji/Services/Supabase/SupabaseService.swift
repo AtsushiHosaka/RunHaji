@@ -483,6 +483,244 @@ final class SupabaseService {
             .eq("id", value: id.uuidString)
             .execute()
     }
+
+    // MARK: - Product Management
+
+    /// Get all products from master data
+    func getAllProducts() async throws -> [Product] {
+        guard let client = client else {
+            throw SupabaseError.notConfigured
+        }
+
+        let response = try await client.database
+            .from("products")
+            .select()
+            .execute()
+
+        let data = response.data
+        if data.isEmpty {
+            return []
+        }
+
+        let decoder = JSONDecoder()
+        return try decoder.decode([Product].self, from: data)
+    }
+
+    /// Get user's products for a specific roadmap
+    func getUserProducts(userId: String, roadmapId: UUID) async throws -> [UserProduct] {
+        guard let client = client else {
+            throw SupabaseError.notConfigured
+        }
+
+        print("📥 Querying user_products: userId=\(userId), roadmapId=\(roadmapId)")
+
+        let response = try await client.database
+            .from("user_products")
+            .select("*, product:products(*)")
+            .eq("user_id", value: userId)
+            .eq("roadmap_id", value: roadmapId.uuidString)
+            .order("is_purchased")
+            .order("created_at")
+            .execute()
+
+        let data = response.data
+        print("📦 Response data size: \(data.count) bytes")
+
+        if data.isEmpty {
+            print("⚠️ No data returned from query")
+            return []
+        }
+
+        // Debug: print raw response
+        if let jsonString = String(data: data, encoding: .utf8) {
+            print("📄 Raw JSON response: \(jsonString)")
+        }
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+
+        do {
+            let products = try decoder.decode([UserProduct].self, from: data)
+            print("✅ Successfully decoded \(products.count) user products")
+            return products
+        } catch {
+            print("❌ Decoding error: \(error)")
+            throw error
+        }
+    }
+
+    /// Create user products for a roadmap
+    func createUserProducts(userId: String, roadmapId: UUID, productIds: [UUID]) async throws {
+        guard let client = client else {
+            throw SupabaseError.notConfigured
+        }
+
+        let userProducts = productIds.map { productId in
+            [
+                "user_id": userId,
+                "product_id": productId.uuidString,
+                "roadmap_id": roadmapId.uuidString,
+                "is_purchased": false
+            ] as [String: Any]
+        }
+
+        let jsonData = try JSONSerialization.data(withJSONObject: userProducts)
+
+        try await client.database
+            .from("user_products")
+            .insert(jsonData)
+            .execute()
+    }
+
+    /// Update product purchase status
+    func updateProductPurchaseStatus(userProductId: UUID, isPurchased: Bool) async throws {
+        guard let client = client else {
+            throw SupabaseError.notConfigured
+        }
+
+        try await client.database
+            .from("user_products")
+            .update(["is_purchased": isPurchased])
+            .eq("id", value: userProductId.uuidString)
+            .execute()
+    }
+
+    /// Request gear recommendations via Edge Function
+    func requestGearRecommendations(
+        userId: String,
+        roadmapId: UUID,
+        userAge: Int?,
+        userGoal: String?,
+        userIdealFrequency: Int?,
+        userCurrentFrequency: Int?,
+        roadmapGoal: String
+    ) async throws {
+        guard let client = client else {
+            throw SupabaseError.notConfigured
+        }
+
+        struct RequestBody: Encodable {
+            let user_id: String
+            let roadmap_id: String
+            let user_profile: UserProfileData
+            let roadmap_goal: String
+
+            struct UserProfileData: Encodable {
+                let age: Int?
+                let goal: String?
+                let ideal_frequency: Int?
+                let current_frequency: Int?
+            }
+        }
+
+        let requestBody = RequestBody(
+            user_id: userId,
+            roadmap_id: roadmapId.uuidString,
+            user_profile: RequestBody.UserProfileData(
+                age: userAge,
+                goal: userGoal,
+                ideal_frequency: userIdealFrequency,
+                current_frequency: userCurrentFrequency
+            ),
+            roadmap_goal: roadmapGoal
+        )
+
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        let jsonData = try encoder.encode(requestBody)
+
+        print("🔵 Calling Edge Function: recommend-gear")
+        print("📤 Request: userId=\(userId), roadmapId=\(roadmapId), goal=\(roadmapGoal)")
+
+        // Call Edge Function
+        do {
+            try await client.functions.invoke(
+                "recommend-gear",
+                options: FunctionInvokeOptions(
+                    body: jsonData
+                )
+            )
+
+            print("✅ Edge Function completed successfully")
+        } catch {
+            print("❌ Edge Function failed with error: \(error)")
+
+            // Try to extract more details from the error
+            if let urlError = error as? URLError {
+                print("   URLError code: \(urlError.code)")
+            }
+
+            print("   Full error: \(String(describing: error))")
+            throw error
+        }
+    }
+
+    /// Initialize complete roadmap (roadmap + gear + workouts) via Edge Function
+    func initializeRoadmap(user: User) async throws -> UUID {
+        guard let client = client else {
+            throw SupabaseError.notConfigured
+        }
+
+        struct RequestBody: Encodable {
+            let user_id: String
+            let user_profile: UserProfileData
+
+            struct UserProfileData: Encodable {
+                let age: Int?
+                let height: Double?
+                let weight: Double?
+                let available_time_per_week: Int?
+                let ideal_frequency: Int?
+                let current_frequency: Int?
+                let goal: String?
+            }
+        }
+
+        struct ResponseBody: Decodable {
+            let success: Bool
+            let roadmap_id: String
+            let message: String
+        }
+
+        let requestBody = RequestBody(
+            user_id: user.id.uuidString,
+            user_profile: RequestBody.UserProfileData(
+                age: user.profile.age,
+                height: user.profile.height,
+                weight: user.profile.weight,
+                available_time_per_week: user.profile.availableTimePerWeek,
+                ideal_frequency: user.profile.idealFrequency,
+                current_frequency: user.profile.currentFrequency,
+                goal: user.profile.goal?.rawValue
+            )
+        )
+
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        let jsonData = try encoder.encode(requestBody)
+
+        print("🚀 Calling Edge Function: initialize-roadmap")
+        print("📤 Request: userId=\(user.id)")
+
+        // Call Edge Function (doesn't return response in current SDK version)
+        try await client.functions.invoke(
+            "initialize-roadmap",
+            options: FunctionInvokeOptions(
+                body: jsonData
+            )
+        )
+
+        print("✅ Edge Function: initialize-roadmap completed")
+
+        // Since we can't get the roadmap_id from the response,
+        // we'll fetch the most recent roadmap for this user
+        if let latestRoadmap = try await getRoadmap(userId: user.id.uuidString) {
+            print("✅ Roadmap ID: \(latestRoadmap.id)")
+            return latestRoadmap.id
+        } else {
+            throw SupabaseError.invalidResponse
+        }
+    }
 }
 
 // MARK: - Error Types

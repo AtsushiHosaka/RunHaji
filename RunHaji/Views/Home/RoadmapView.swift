@@ -9,11 +9,14 @@ import SwiftUI
 
 struct RoadmapView: View {
     let roadmap: Roadmap?
+    let isGenerating: Bool
     var onGenerateRoadmap: (() async -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if let roadmap = roadmap {
+            if isGenerating {
+                generatingView
+            } else if let roadmap = roadmap {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("ロードマップ")
                         .font(.headline)
@@ -54,6 +57,25 @@ struct RoadmapView: View {
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
 
+    private var generatingView: some View {
+        VStack(spacing: 20) {
+            ProgressView()
+                .scaleEffect(1.5)
+                .tint(.accent)
+
+            Text("生成中...")
+                .font(.headline)
+                .foregroundColor(.primary)
+
+            Text("あなた専用のロードマップを作成しています")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+
     private var emptyRoadmapView: some View {
         VStack(spacing: 16) {
             Image(systemName: "map")
@@ -76,7 +98,7 @@ struct RoadmapView: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
-                        .background(Color.blue)
+                        .background(Color.accent)
                         .cornerRadius(8)
                 }
             }
@@ -211,8 +233,8 @@ struct MilestoneCard: View {
         milestones: sampleMilestones
     )
 
-    return ScrollView {
-        RoadmapView(roadmap: sampleRoadmap)
+    ScrollView {
+        RoadmapView(roadmap: sampleRoadmap, isGenerating: false)
             .padding()
     }
 }

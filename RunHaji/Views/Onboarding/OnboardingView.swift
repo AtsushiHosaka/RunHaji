@@ -17,6 +17,7 @@ struct OnboardingView: View {
         VStack(spacing: 0) {
             // Progress Bar
             ProgressView(value: viewModel.progress)
+                .tint(.accent)
                 .padding()
 
             // Content
@@ -77,6 +78,7 @@ struct OnboardingView: View {
             }
             .padding()
         }
+        .tint(.accent)
         .interactiveDismissDisabled()
         .alert("エラー", isPresented: $showError) {
             Button("OK", role: .cancel) { }
