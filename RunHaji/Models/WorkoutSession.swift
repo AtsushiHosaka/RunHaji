@@ -18,6 +18,18 @@ struct WorkoutSession: Codable, Identifiable {
     let rpe: Int? // Rate of Perceived Exertion (1-10)
     let createdAt: Date
 
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case startDate = "start_date"
+        case endDate = "end_date"
+        case duration
+        case distance
+        case calories
+        case rpe
+        case createdAt = "created_at"
+    }
+
     init(
         id: UUID = UUID(),
         userId: String,

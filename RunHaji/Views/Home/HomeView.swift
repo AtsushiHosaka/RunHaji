@@ -21,8 +21,13 @@ struct HomeView: View {
                     progressOverviewSection
 
                     // Roadmap Visualization
-                    RoadmapView(roadmap: viewModel.roadmap)
-                        .padding(.horizontal)
+                    RoadmapView(
+                        roadmap: viewModel.roadmap,
+                        onGenerateRoadmap: {
+                            await viewModel.createDefaultRoadmap()
+                        }
+                    )
+                    .padding(.horizontal)
 
                     // Upcoming Workouts
                     upcomingWorkoutsSection
@@ -37,14 +42,16 @@ struct HomeView: View {
                 await viewModel.refresh()
             }
             .alert(
-                "エラー",
-                isPresented: Binding(
-                    get: { viewModel.errorMessage != nil },
-                    set: { if !$0 { viewModel.errorMessage = nil } }
-                ),
+                "ロードマップ生成エラー",
+                isPresented: $viewModel.showErrorAlert,
                 actions: {
-                    Button("OK") {
-                        viewModel.errorMessage = nil
+                    Button("再試行") {
+                        Task {
+                            await viewModel.createDefaultRoadmap()
+                        }
+                    }
+                    Button("キャンセル", role: .cancel) {
+                        viewModel.showErrorAlert = false
                     }
                 },
                 message: {
