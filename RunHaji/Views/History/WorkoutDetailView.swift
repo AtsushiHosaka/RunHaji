@@ -30,12 +30,12 @@ struct WorkoutDetailView: View {
                 if let reflection = viewModel.reflection {
                     reflectionSection(reflection: reflection)
                 } else if viewModel.isLoading {
-                    ProgressView("振り返りを読み込み中...")
+                    ProgressView(NSLocalizedString("workout_detail.loading_reflection", comment: "Loading reflection"))
                 }
             }
             .padding()
         }
-        .navigationTitle("ワークアウト詳細")
+        .navigationTitle(NSLocalizedString("workout_detail.nav.title", comment: "Workout detail nav title"))
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await viewModel.loadReflection()
@@ -62,28 +62,28 @@ struct WorkoutDetailView: View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
             StatCard(
                 icon: "ruler",
-                title: "距離",
+                title: NSLocalizedString("workout_detail.stats.distance", comment: "Distance"),
                 value: formatDistance(session.distance),
                 color: .blue
             )
             
             StatCard(
                 icon: "clock",
-                title: "時間",
+                title: NSLocalizedString("workout_detail.stats.duration", comment: "Duration"),
                 value: formatDuration(session.duration),
                 color: .green
             )
             
             StatCard(
                 icon: "gauge",
-                title: "ペース",
+                title: NSLocalizedString("workout_detail.stats.pace", comment: "Pace"),
                 value: formatPace(session.distance, session.duration),
                 color: .orange
             )
             
             StatCard(
                 icon: "flame",
-                title: "カロリー",
+                title: NSLocalizedString("workout_detail.stats.calories", comment: "Calories"),
                 value: formatCalories(session.calories),
                 color: .red
             )
@@ -92,12 +92,12 @@ struct WorkoutDetailView: View {
     
     private func reflectionSection(reflection: WorkoutReflection) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("AI振り返り")
+            Text(NSLocalizedString("workout_detail.reflection.title", comment: "AI reflection title"))
                 .font(.title2)
                 .fontWeight(.bold)
             
             VStack(alignment: .leading, spacing: 12) {
-                Label("今日のランニング", systemImage: "note.text")
+                Label(NSLocalizedString("workout_detail.reflection.todays_run", comment: "Today's run"), systemImage: "note.text")
                     .font(.headline)
                 
                 Text(reflection.reflection)
@@ -109,7 +109,7 @@ struct WorkoutDetailView: View {
             .cornerRadius(12)
             
             VStack(alignment: .leading, spacing: 12) {
-                Label("次回へのアドバイス", systemImage: "lightbulb")
+                Label(NSLocalizedString("workout_detail.reflection.suggestions", comment: "Suggestions for next time"), systemImage: "lightbulb")
                     .font(.headline)
                 
                 Text(reflection.suggestions)
@@ -122,11 +122,11 @@ struct WorkoutDetailView: View {
             
             if let milestone = reflection.milestoneProgress, milestone.isAchieved {
                 VStack(alignment: .leading, spacing: 12) {
-                    Label("マイルストーン達成！", systemImage: "star.fill")
+                    Label(NSLocalizedString("workout_detail.reflection.milestone_achieved", comment: "Milestone achieved"), systemImage: "star.fill")
                         .font(.headline)
                         .foregroundColor(.yellow)
                     
-                    Text(milestone.achievementMessage ?? "おめでとうございます！")
+                    Text(milestone.achievementMessage ?? NSLocalizedString("workout_detail.reflection.congratulations", comment: "Congratulations"))
                         .font(.body)
                 }
                 .padding()
@@ -138,8 +138,9 @@ struct WorkoutDetailView: View {
     
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy年M月d日 (E) HH:mm"
-        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .medium
+        formatter.locale = .current
         return formatter.string(from: date)
     }
     
