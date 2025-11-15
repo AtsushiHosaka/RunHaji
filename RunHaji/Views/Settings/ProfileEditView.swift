@@ -10,41 +10,32 @@ import SwiftUI
 struct ProfileEditView: View {
     @ObservedObject var viewModel: SettingsViewModel
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         Form {
             Section("基本情報") {
-                HStack {
-                    Text("年齢")
-                    Spacer()
-                    TextField("年齢", text: $viewModel.age)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 100)
-                    Text("歳")
+                Picker("年齢", selection: $viewModel.age) {
+                    ForEach(10...100, id: \.self) { age in
+                        Text("\(age)歳")
+                            .tag(age)
+                    }
                 }
-                
-                HStack {
-                    Text("身長")
-                    Spacer()
-                    TextField("身長", text: $viewModel.height)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 100)
-                    Text("cm")
+
+                Picker("身長", selection: $viewModel.height) {
+                    ForEach(Array(stride(from: 140.0, through: 210.0, by: 1.0)), id: \.self) { height in
+                        Text(String(format: "%.0f cm", height))
+                            .tag(height)
+                    }
                 }
-                
-                HStack {
-                    Text("体重")
-                    Spacer()
-                    TextField("体重", text: $viewModel.weight)
-                        .keyboardType(.decimalPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 100)
-                    Text("kg")
+
+                Picker("体重", selection: $viewModel.weight) {
+                    ForEach(Array(stride(from: 35.0, through: 150.0, by: 0.5)), id: \.self) { weight in
+                        Text(String(format: "%.1f kg", weight))
+                            .tag(weight)
+                    }
                 }
             }
-            
+
             Section("週間目標") {
                 Stepper("週\(viewModel.idealFrequency)回", value: $viewModel.idealFrequency, in: 1...7)
             }
