@@ -14,9 +14,9 @@ class OnboardingViewModel: ObservableObject {
     @Published var isCompleted = false
 
     // Survey data
-    @Published var age: String = ""
-    @Published var height: String = ""
-    @Published var weight: String = ""
+    @Published var age: Int = 25
+    @Published var height: Double = 170
+    @Published var weight: Double = 60
     @Published var availableTime: Int = 1
     @Published var idealFrequency: Int = 1
     @Published var currentFrequency: Int = 0
@@ -43,12 +43,7 @@ class OnboardingViewModel: ObservableObject {
     func canProceed() -> Bool {
         switch currentStep {
         case 0: // Age, Height, Weight
-            guard let ageVal = Int(age), ageVal > 0,
-                  let heightVal = Double(height), heightVal > 0,
-                  let weightVal = Double(weight), weightVal > 0 else {
-                return false
-            }
-            return true
+            return age > 0 && height > 0 && weight > 0
         case 1: // Available Time
             return availableTime > 0
         case 2: // Frequency
@@ -68,9 +63,9 @@ class OnboardingViewModel: ObservableObject {
 
         // Create user profile
         let profile = UserProfile(
-            age: Int(age) ?? 0,
-            height: Double(height) ?? 0.0,
-            weight: Double(weight) ?? 0.0,
+            age: age,
+            height: height,
+            weight: weight,
             availableTimePerWeek: availableTime,
             idealFrequency: idealFrequency,
             currentFrequency: currentFrequency,
