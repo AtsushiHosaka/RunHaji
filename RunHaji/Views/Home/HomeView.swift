@@ -47,9 +47,6 @@ struct HomeView: View {
                     )
                     .padding(.horizontal)
 
-                    // Upcoming Workouts
-                    upcomingWorkoutsSection
-
                     // Recent Activity
                     recentActivitySection
                 }
@@ -135,23 +132,6 @@ struct HomeView: View {
         .padding(.horizontal)
     }
 
-    private var upcomingWorkoutsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text(NSLocalizedString("home.upcoming_workouts.title", comment: ""))
-                .font(.headline)
-                .padding(.horizontal)
-
-            if viewModel.upcomingWorkouts.isEmpty {
-                emptyStateView(message: NSLocalizedString("home.upcoming_workouts.empty", comment: ""))
-            } else {
-                ForEach(viewModel.upcomingWorkouts) { workout in
-                    UpcomingWorkoutCard(workout: workout)
-                        .padding(.horizontal)
-                }
-            }
-        }
-    }
-
     private var recentActivitySection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(NSLocalizedString("home.recent_activity.title", comment: ""))
@@ -181,61 +161,6 @@ struct HomeView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 32)
-    }
-}
-
-struct UpcomingWorkoutCard: View {
-    let workout: UpcomingWorkout
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(workout.title)
-                    .font(.headline)
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.secondary)
-            }
-
-            HStack(spacing: 16) {
-                Label(
-                    formattedDuration(workout.estimatedDuration),
-                    systemImage: "clock"
-                )
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-                if let distance = workout.targetDistance {
-                    Label(
-                        formattedDistance(distance),
-                        systemImage: "figure.run"
-                    )
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }
-            }
-
-            if let notes = workout.notes {
-                Text(notes)
-                    .font(.caption)
-                    .foregroundColor(.blue)
-                    .padding(.top, 4)
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-
-    private func formattedDuration(_ duration: TimeInterval) -> String {
-        duration.formattedMinutes()
-    }
-
-    private func formattedDistance(_ distance: Double) -> String {
-        distance.formattedDistance()
     }
 }
 

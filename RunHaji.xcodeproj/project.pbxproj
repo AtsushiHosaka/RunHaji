@@ -24,22 +24,9 @@
 		D656880B2EC872960044A97D /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		D65687F42EC86CBE0044A97D /* Exceptions for "RunHaji" folder in "RunHaji" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 6D9608C02EC5A106009E2240 /* RunHaji */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6D9608C32EC5A106009E2240 /* RunHaji */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				D65687F42EC86CBE0044A97D /* Exceptions for "RunHaji" folder in "RunHaji" target */,
-			);
 			path = RunHaji;
 			sourceTree = "<group>";
 		};
@@ -330,7 +317,6 @@
 				DEVELOPMENT_TEAM = 93LJ9T3CBB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RunHaji/Info.plist;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "運動強度測定のためにHealthKitを使っています";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "運動強度測定のためにHealthKitを使っています";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "位置情報を取得します";
@@ -367,7 +353,6 @@
 				DEVELOPMENT_TEAM = 93LJ9T3CBB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = RunHaji/Info.plist;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "運動強度測定のためにHealthKitを使っています";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "運動強度測定のためにHealthKitを使っています";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "位置情報を取得します";
