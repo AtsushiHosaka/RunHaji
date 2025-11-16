@@ -12,24 +12,24 @@ struct CurrentFrequencyStepView: View {
 
     var body: some View {
         VStack(spacing: 30) {
-            Text("現在の運動頻度は？")
+            Text(NSLocalizedString("current_frequency.title", comment: ""))
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .padding(.top, 40)
 
             VStack(spacing: 20) {
-                Text("週\(viewModel.currentFrequency)回")
+                Text(String(format: NSLocalizedString("common.frequency_format.week", comment: ""), viewModel.currentFrequency))
                     .font(.system(size: 60, weight: .bold))
                     .foregroundColor(.orange)
 
                 Stepper("", value: $viewModel.currentFrequency, in: 0...7)
                     .labelsHidden()
-                    .accessibilityLabel("現在の運動頻度")
-                    .accessibilityValue("週\(viewModel.currentFrequency)回")
+                    .accessibilityLabel(NSLocalizedString("current_frequency.accessibility.label", comment: ""))
+                    .accessibilityValue(String(format: NSLocalizedString("common.frequency_format.week", comment: ""), viewModel.currentFrequency))
                     .padding(.horizontal, 50)
             }
 
-            Text("現在、週に何回運動していますか？\n（0回でも大丈夫です）")
+            Text(NSLocalizedString("current_frequency.description", comment: ""))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

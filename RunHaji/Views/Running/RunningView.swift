@@ -33,17 +33,17 @@ struct RunningView: View {
                     }
                 }
             }
-            .alert("ワークアウトを終了しますか?", isPresented: $viewModel.showingEndWorkoutAlert) {
-                Button("キャンセル", role: .cancel) {
+            .alert(NSLocalizedString("running.alert.end_workout.title", comment: "End workout alert title"), isPresented: $viewModel.showingEndWorkoutAlert) {
+                Button(NSLocalizedString("common.cancel", comment: "Cancel button"), role: .cancel) {
                     viewModel.cancelEndWorkout()
                 }
-                Button("終了", role: .destructive) {
+                Button(NSLocalizedString("running.button.finish", comment: "Finish button"), role: .destructive) {
                     Task {
                         await viewModel.endWorkout()
                     }
                 }
             } message: {
-                Text("ワークアウトを終了すると、データが保存されます。")
+                Text(NSLocalizedString("running.alert.end_workout.message", comment: "End workout alert message"))
             }
             .navigationDestination(isPresented: $viewModel.showingScoringView) {
                 if let workout = viewModel.completedWorkout,
@@ -66,7 +66,7 @@ struct RunningView: View {
         VStack(spacing: 40) {
             Spacer()
 
-            Text("ランニング")
+            Text(NSLocalizedString("running.title", comment: "Running title"))
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
@@ -78,7 +78,7 @@ struct RunningView: View {
             Button(action: {
                 viewModel.startWorkout()
             }) {
-                Text("START")
+                Text(NSLocalizedString("running.button.start", comment: "Start button"))
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -118,14 +118,14 @@ struct RunningView: View {
                 StatItem(
                     icon: "timer",
                     value: viewModel.formattedDuration(),
-                    label: "時間"
+                    label: NSLocalizedString("running.stats.duration", comment: "Duration")
                 )
 
                 // Calories
                 StatItem(
                     icon: "flame.fill",
                     value: viewModel.formattedCalories(),
-                    label: "カロリー"
+                    label: NSLocalizedString("running.stats.calories", comment: "Calories")
                 )
             }
             .padding(.horizontal)
@@ -204,7 +204,7 @@ struct ScoringViewWrapper: View {
     var body: some View {
         Group {
             if isLoading {
-                ProgressView("読み込み中...")
+                ProgressView(NSLocalizedString("common.loading", comment: "Loading"))
             } else {
                 let distance = workout.totalDistance?.doubleValue(for: .meter()) ?? 0
                 let duration = workout.duration

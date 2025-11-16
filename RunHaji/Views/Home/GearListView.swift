@@ -17,7 +17,7 @@ struct GearListView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("そろえるもの")
+            Text(NSLocalizedString("gear_list.title", comment: ""))
                 .font(.headline)
                 .padding(.horizontal)
 
@@ -50,7 +50,7 @@ struct GearListView: View {
                 .font(.largeTitle)
                 .foregroundColor(.gray.opacity(0.5))
 
-            Text("おすすめのギアを読み込み中...")
+            Text(NSLocalizedString("gear_list.empty", comment: ""))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
@@ -129,7 +129,7 @@ struct GearItemCard: View {
 
                 // Purchase button or purchased label
                 if isPurchased {
-                    Text("購入済み")
+                    Text(NSLocalizedString("gear_list.purchased", comment: ""))
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .padding(.horizontal, 8)
@@ -140,7 +140,7 @@ struct GearItemCard: View {
                     Link(destination: URL(string: product.purchaseURL)!) {
                         HStack(spacing: 4) {
                             Image(systemName: "cart.fill")
-                            Text("購入")
+                            Text(NSLocalizedString("gear_list.purchase_button", comment: ""))
                         }
                         .font(.caption)
                         .fontWeight(.medium)

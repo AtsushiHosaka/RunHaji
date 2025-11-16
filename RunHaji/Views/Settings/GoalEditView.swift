@@ -19,11 +19,11 @@ struct GoalEditView: View {
                 } label: {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(goal.rawValue)
+                            Text(goal.displayTitle)
                                 .font(.headline)
                                 .foregroundColor(.primary)
 
-                            Text(goal.description)
+                            Text(goal.displaySubtitle)
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -38,11 +38,11 @@ struct GoalEditView: View {
                 }
             }
         }
-        .navigationTitle("目標選択")
+        .navigationTitle(NSLocalizedString("goal_edit.title", comment: ""))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("保存") {
+                Button(NSLocalizedString("goal_edit.save", comment: "")) {
                     Task {
                         await viewModel.saveProfile()
                         dismiss()

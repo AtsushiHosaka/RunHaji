@@ -27,7 +27,7 @@ struct GearView: View {
                 }
                 .padding(.vertical)
             }
-            .navigationTitle("ギア推奨")
+            .navigationTitle(NSLocalizedString("gear.nav.title", comment: "Gear nav title"))
             .refreshable {
                 await viewModel.loadRecommendations()
             }
@@ -39,11 +39,11 @@ struct GearView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("あなたにおすすめのギア")
+            Text(NSLocalizedString("gear.header.title", comment: "Gear header title"))
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("ランニングを始めるために必要なアイテムを、予算別にご紹介します")
+            Text(NSLocalizedString("gear.header.subtitle", comment: "Gear header subtitle"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
@@ -85,7 +85,7 @@ struct CategorySection: View {
             Image(systemName: "tray")
                 .font(.largeTitle)
                 .foregroundColor(.gray)
-            Text("商品を読み込み中...")
+            Text(NSLocalizedString("gear.loading_products", comment: "Loading products"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }

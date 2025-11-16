@@ -14,15 +14,15 @@ struct WorkoutHistoryView: View {
         NavigationView {
             Group {
                 if viewModel.isLoading {
-                    ProgressView("読み込み中...")
+                    ProgressView(NSLocalizedString("workout_history.loading", comment: "Loading"))
                 } else if viewModel.sessions.isEmpty {
                     emptyState
                 } else {
                     workoutList
                 }
             }
-            .navigationTitle("ワークアウト履歴")
-            .alert("エラー", isPresented: Binding(
+            .navigationTitle(NSLocalizedString("workout_history.nav.title", comment: "Workout history nav title"))
+            .alert(NSLocalizedString("common.error", comment: ""), isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
             )) {
@@ -44,11 +44,11 @@ struct WorkoutHistoryView: View {
                 .font(.system(size: 64))
                 .foregroundColor(.secondary)
             
-            Text("まだワークアウトがありません")
+            Text(NSLocalizedString("workout_history.empty.title", comment: "Empty state title"))
                 .font(.title3)
                 .fontWeight(.medium)
             
-            Text("ランニングを記録して、振り返りを確認しましょう")
+            Text(NSLocalizedString("workout_history.empty.subtitle", comment: "Empty state subtitle"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -108,8 +108,8 @@ struct WorkoutRowView: View {
     
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "M月d日 (E) HH:mm"
-        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.dateFormat = "MMM d, HH:mm"
+        formatter.locale = .current
         return formatter.string(from: date)
     }
     

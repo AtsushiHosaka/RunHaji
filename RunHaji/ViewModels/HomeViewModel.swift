@@ -79,11 +79,11 @@ class HomeViewModel: ObservableObject {
 
         switch hour {
         case 5..<12:
-            return "おはようございます"
+            return NSLocalizedString("greeting.morning", comment: "")
         case 12..<18:
-            return "こんにちは"
+            return NSLocalizedString("greeting.afternoon", comment: "")
         default:
-            return "こんばんは"
+            return NSLocalizedString("greeting.evening", comment: "")
         }
     }
 
