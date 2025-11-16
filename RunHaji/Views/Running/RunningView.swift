@@ -210,14 +210,6 @@ struct ScoringViewWrapper: View {
                 let duration = workout.duration
                 let calories = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
 
-                let _ = {
-                    print("📊 ScoringView - Workout Data:")
-                    print("   Distance: \(distance) meters (\(distance/1000.0) km)")
-                    print("   Duration: \(duration) seconds (\(duration/60.0) minutes)")
-                    print("   Calories: \(calories) kcal")
-                    print("   totalDistance raw: \(workout.totalDistance?.description ?? "nil")")
-                }()
-
                 ScoringView(
                     healthKitManager: HealthKitManager(),
                     userId: userId,

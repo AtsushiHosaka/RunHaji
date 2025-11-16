@@ -10,7 +10,6 @@ import SwiftUI
 struct MilestoneDetailView: View {
     let milestone: Milestone
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = GearViewModel()
 
     var body: some View {
         ZStack {
@@ -34,9 +33,6 @@ struct MilestoneDetailView: View {
                         descriptionSection(description)
                     }
 
-                    // Recommended Products
-                    recommendedProductsSection
-
                     // Tips
                     tipsSection
                 }
@@ -45,9 +41,6 @@ struct MilestoneDetailView: View {
         }
         .navigationTitle(milestone.title)
         .navigationBarTitleDisplayMode(.large)
-        .task {
-            await viewModel.loadRecommendations()
-        }
     }
 
     private var headerSection: some View {
@@ -148,40 +141,6 @@ struct MilestoneDetailView: View {
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
     }
 
-    private var recommendedProductsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text(NSLocalizedString("milestone_detail.recommended_gear_title", comment: ""))
-                    .font(.headline)
-                Spacer()
-                NavigationLink(NSLocalizedString("common.see_more", comment: "")) {
-                    GearView()
-                }
-                .font(.subheadline)
-                .foregroundColor(.accent)
-            }
-
-            Text(NSLocalizedString("milestone_detail.recommended_gear_subtitle", comment: ""))
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    // Show 2-3 recommended products
-                    ForEach(recommendedProducts().prefix(3)) { product in
-                        ProductCard(product: product)
-                            .frame(width: 200)
-                    }
-                }
-                .padding(.vertical, 4)
-            }
-        }
-        .padding(20)
-        .background(Color.cardBackground)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-    }
-
     private var tipsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(NSLocalizedString("milestone_detail.tips_title", comment: ""))
@@ -209,22 +168,6 @@ struct MilestoneDetailView: View {
         .background(Color.cardBackground)
         .cornerRadius(16)
         .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
-    }
-
-    private func recommendedProducts() -> [Product] {
-        // Get products relevant to this milestone
-        var products: [Product] = []
-
-        // Always recommend shoes and apparel for beginners
-        products += viewModel.products(for: .shoes).prefix(1)
-        products += viewModel.products(for: .apparel).prefix(1)
-
-        // Add accessories for intermediate milestones
-        if !milestone.isCompleted {
-            products += viewModel.products(for: .accessories).prefix(1)
-        }
-
-        return products
     }
 
     private func formattedDate(_ date: Date) -> String {
