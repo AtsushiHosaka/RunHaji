@@ -19,11 +19,6 @@ class ScoringViewModel: ObservableObject {
     @Published var showSuccessMessage: Bool = false
     @Published var errorMessage: String?
 
-    // Progress tracking
-    @Published var weeklyDistance: Double = 0.0 // meters
-    @Published var weeklyWorkouts: Int = 0
-    @Published var progressPercentage: Double = 0.0
-
     private let healthKitManager: HealthKitManager
     private let userId: String
     private let analysisService = WorkoutAnalysisService.shared
@@ -57,68 +52,57 @@ class ScoringViewModel: ObservableObject {
         // For now, we'll use the last workout data if available
     }
 
-    // MARK: - Progress Calculation
+    // MARK: - Workout Completion Processing
 
-    /// 週間進捗を計算
-    func calculateWeeklyProgress(userGoal: RunningGoal?, idealFrequency: Int?) async {
-        await loadWeeklyStats()
-
-        // Calculate progress based on user's goal
-        if let frequency = idealFrequency, frequency > 0 {
-            progressPercentage = min(Double(weeklyWorkouts) / Double(frequency), 1.0) * 100
+    /// ワークアウト完了処理を一括で実行（分析→保存→通知）
+    /// - Parameters:
+    ///   - userGoal: ユーザーの目標
+    ///   - currentMilestone: 現在のマイルストーン
+    /// - Returns: マイルストーン達成の場合true
+    func processWorkoutCompletion(userGoal: RunningGoal?, currentMilestone: Milestone?) async -> Bool {
+        guard workoutSession != nil else {
+            errorMessage = "ワークアウトデータが見つかりません"
+            return false
         }
+
+        // Step 1: Load recent workout sessions
+        await loadRecentWorkoutSessions()
+
+        // Step 2: Analyze workout with AI
+        await analyzeWorkout(userGoal: userGoal, currentMilestone: currentMilestone)
+
+        // Step 3: Save workout (with reflection or fallback)
+        var milestoneAchieved = false
+        if workoutReflection != nil {
+            // Analysis succeeded
+            milestoneAchieved = workoutReflection?.milestoneProgress?.isAchieved ?? false
+            await saveWorkoutWithReflection()
+        } else if errorMessage != nil {
+            // Analysis failed - save with fallback
+            print("⚠️ Analysis failed, saving with fallback reflection")
+            await saveWorkoutWithFallback()
+        }
+
+        return milestoneAchieved
     }
 
-    /// 週間統計をロード
-    private func loadWeeklyStats() async {
-        let calendar = Calendar.current
-        let now = Date()
-        guard let weekStart = calendar.date(byAdding: .day, value: -7, to: now) else { return }
+    // MARK: - Recent Workout Sessions
 
-        // Load recent workouts
-        // Note: This loads up to 20 workouts. If user has more than 20 workouts in the past week,
-        // some may not be included in the weekly stats calculation.
-        await healthKitManager.loadWorkouts()
+    /// 最近のワークアウトセッションをSupabaseから読み込み（AI分析用）
+    private func loadRecentWorkoutSessions() async {
+        do {
+            // Load recent workout sessions from Supabase (past 7 days)
+            let sessions = try await SupabaseService.shared.getWorkoutSessions(userId: userId, limit: 20)
+            let calendar = Calendar.current
+            let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
 
-        // Calculate weekly totals and build recent workout sessions
-        weeklyDistance = 0.0
-        weeklyWorkouts = 0
-        recentWorkoutSessions = []
+            // Filter sessions from the past 7 days
+            recentWorkoutSessions = sessions.filter { $0.startDate >= weekAgo }
 
-        for workout in healthKitManager.workouts {
-            if workout.startDate >= weekStart {
-                weeklyDistance += healthKitManager.getDistance(for: workout)
-                weeklyWorkouts += 1
-
-                // Build WorkoutSession for AI analysis
-                let session = WorkoutSession(
-                    userId: userId,
-                    startDate: workout.startDate,
-                    endDate: workout.endDate,
-                    duration: workout.duration,
-                    distance: healthKitManager.getDistance(for: workout),
-                    calories: workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0,
-                    rpe: nil
-                )
-                recentWorkoutSessions.append(session)
-            }
-        }
-    }
-
-    /// 次のマイルストーンを取得
-    func getNextMilestone(userGoal: RunningGoal?, idealFrequency: Int?) -> String {
-        guard let frequency = idealFrequency else {
-            return "目標を設定してください"
-        }
-
-        let remainingWorkouts = max(0, frequency - weeklyWorkouts)
-
-        if remainingWorkouts == 0 {
-            return "今週の目標達成！"
-        } else if remainingWorkouts == 1 {
-            return "あと1回のランで今週の目標達成！"
-        } else {
-            return "今週あと\(remainingWorkouts)回のランで目標達成"
+            print("✅ Loaded \(recentWorkoutSessions.count) recent workout sessions for AI analysis")
+        } catch {
+            print("❌ Failed to load recent workout sessions: \(error)")
+            recentWorkoutSessions = []
         }
     }
 
@@ -251,14 +235,12 @@ class ScoringViewModel: ObservableObject {
         isSaving = false
         showSuccessMessage = true
 
-        // Notify HomeViewModel to update milestone if achieved
-        if reflection.milestoneProgress?.isAchieved == true {
-            NotificationCenter.default.post(
-                name: NSNotification.Name("WorkoutReflectionSaved"),
-                object: nil,
-                userInfo: ["reflection": reflection]
-            )
-        }
+        // Always notify HomeViewModel to refresh data
+        NotificationCenter.default.post(
+            name: NSNotification.Name("WorkoutReflectionSaved"),
+            object: nil,
+            userInfo: ["reflection": reflection]
+        )
 
         // Auto-hide success message after 2 seconds
         try? await Task.sleep(nanoseconds: 2_000_000_000)
@@ -280,10 +262,6 @@ class ScoringViewModel: ObservableObject {
     func formatPace(_ distance: Double, _ duration: TimeInterval) -> String {
         let pace = healthKitManager.getPace(for: distance, duration: duration)
         return healthKitManager.formatPace(pace)
-    }
-
-    func formatWeeklyDistance() -> String {
-        return String(format: "%.1f km", weeklyDistance / 1000.0)
     }
 
     func formatCalories(_ calories: Double) -> String {

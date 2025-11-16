@@ -13,6 +13,7 @@ struct StepProgressView: View {
     let completedMilestones: Int
 
     private var progress: Double {
+        // ロードマップ全体の進捗度を表示（完了数 / 総数）
         guard totalMilestones > 0 else { return 0 }
         return Double(completedMilestones) / Double(totalMilestones)
     }

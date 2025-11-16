@@ -6,151 +6,256 @@
 //
 
 import SwiftUI
+import HealthKit
 
 struct RunningView: View {
     @StateObject private var viewModel: RunningViewModel
 
     init() {
-        // Use default HealthKitManager
         _viewModel = StateObject(wrappedValue: RunningViewModel(healthKitManager: HealthKitManager()))
     }
 
     var body: some View {
-        ZStack {
-            // Background gradient
-            LinearGradient.appGradient
-                .opacity(0.3)
-                .ignoresSafeArea()
+        NavigationStack {
+            ZStack {
+                // Background gradient
+                LinearGradient.appGradient
+                    .opacity(0.3)
+                    .ignoresSafeArea()
 
-            VStack(spacing: 40) {
-                Spacer()
+                VStack(spacing: 0) {
+                    if viewModel.isRunning {
+                        // Active workout view
+                        activeWorkoutView
+                    } else {
+                        // Start view
+                        startView
+                    }
+                }
+            }
+            .alert(NSLocalizedString("running.alert.end_workout.title", comment: "End workout alert title"), isPresented: $viewModel.showingEndWorkoutAlert) {
+                Button(NSLocalizedString("common.cancel", comment: "Cancel button"), role: .cancel) {
+                    viewModel.cancelEndWorkout()
+                }
+                Button(NSLocalizedString("running.button.finish", comment: "Finish button"), role: .destructive) {
+                    Task {
+                        await viewModel.endWorkout()
+                    }
+                }
+            } message: {
+                Text(NSLocalizedString("running.alert.end_workout.message", comment: "End workout alert message"))
+            }
+            .navigationDestination(isPresented: $viewModel.showingScoringView) {
+                if let workout = viewModel.completedWorkout,
+                   let userId = UserSessionManager.shared.storedUserId {
+                    ScoringViewWrapper(
+                        workout: workout,
+                        userId: userId.uuidString
+                    )
+                }
+            }
+            .task {
+                await viewModel.requestAuthorization()
+            }
+        }
+    }
 
-                // Title
-                Text(NSLocalizedString("running.title", comment: "Running title"))
-                    .font(.largeTitle)
+    // MARK: - Start View
+
+    private var startView: some View {
+        VStack(spacing: 40) {
+            Spacer()
+
+            Text(NSLocalizedString("running.title", comment: "Running title"))
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .foregroundColor(.primary)
+
+            Image(systemName: "figure.run")
+                .font(.system(size: 100))
+                .foregroundColor(.accent)
+
+            Button(action: {
+                viewModel.startWorkout()
+            }) {
+                Text(NSLocalizedString("running.button.start", comment: "Start button"))
+                    .font(.title)
                     .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .frame(width: 200, height: 60)
+                    .background(Color.green)
+                    .cornerRadius(30)
+                    .shadow(radius: 10)
+            }
+
+            Spacer()
+        }
+        .padding()
+    }
+
+    // MARK: - Active Workout View
+
+    private var activeWorkoutView: some View {
+        VStack(spacing: 24) {
+            // Main distance display
+            VStack(spacing: 8) {
+                Text(viewModel.formattedDistance())
+                    .font(.system(size: 72, weight: .bold, design: .rounded))
                     .foregroundColor(.primary)
 
-                // Stats Display
-                VStack(spacing: 30) {
-                    // Distance
-                    StatView(
-                        title: NSLocalizedString("running.stats.distance", comment: "Distance"),
-                        value: viewModel.formattedDistance(),
-                        unit: "km"
-                    )
+                Text("KM")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.top, 60)
 
-                    // Timer
-                    StatView(
-                        title: NSLocalizedString("running.stats.duration", comment: "Duration"),
-                        value: viewModel.formattedDuration(),
-                        unit: ""
-                    )
+            Spacer()
 
-                    // Pace
-                    StatView(
-                        title: NSLocalizedString("running.stats.pace", comment: "Pace"),
-                        value: viewModel.formattedPace(),
-                        unit: "min/km"
-                    )
-                }
-                .padding(.horizontal)
+            // Stats row
+            HStack(spacing: 40) {
+                // Duration
+                StatItem(
+                    icon: "timer",
+                    value: viewModel.formattedDuration(),
+                    label: NSLocalizedString("running.stats.duration", comment: "Duration")
+                )
 
-                Spacer()
+                // Calories
+                StatItem(
+                    icon: "flame.fill",
+                    value: viewModel.formattedCalories(),
+                    label: NSLocalizedString("running.stats.calories", comment: "Calories")
+                )
+            }
+            .padding(.horizontal)
 
-                // Control Button
-                if viewModel.isRunning {
-                    Button(action: {
-                        viewModel.requestEndWorkout()
-                    }) {
-                        Text(NSLocalizedString("running.button.finish", comment: "Finish button"))
-                            .font(.title2)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .frame(width: 200, height: 60)
-                            .background(Color.red)
-                            .cornerRadius(30)
-                            .shadow(radius: 10)
+            Spacer()
+
+            // Control buttons
+            HStack(spacing: 60) {
+                // Pause/Resume button
+                Button(action: {
+                    if viewModel.isPaused {
+                        viewModel.resumeWorkout()
+                    } else {
+                        viewModel.pauseWorkout()
                     }
-                } else {
-                    Button(action: {
-                        viewModel.startWorkout()
-                    }) {
-                        Text(NSLocalizedString("running.button.start", comment: "Start button"))
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .frame(width: 200, height: 60)
-                            .background(Color.green)
-                            .cornerRadius(30)
-                            .shadow(radius: 10)
-                    }
+                }) {
+                    Image(systemName: viewModel.isPaused ? "play.fill" : "pause.fill")
+                        .font(.system(size: 30))
+                        .foregroundColor(.white)
+                        .frame(width: 80, height: 80)
+                        .background(Circle().fill(Color.blue))
+                        .shadow(radius: 10)
                 }
 
-                Spacer()
-            }
-            .padding()
-        }
-        .alert(NSLocalizedString("running.alert.end_workout.title", comment: "End workout alert title"), isPresented: $viewModel.showingEndWorkoutAlert) {
-            Button(NSLocalizedString("common.cancel", comment: "Cancel button"), role: .cancel) {
-                viewModel.cancelEndWorkout()
-            }
-            Button(NSLocalizedString("running.button.finish", comment: "Finish button"), role: .destructive) {
-                Task {
-                    await viewModel.endWorkout()
+                // End button
+                Button(action: {
+                    viewModel.requestEndWorkout()
+                }) {
+                    Image(systemName: "stop.fill")
+                        .font(.system(size: 30))
+                        .foregroundColor(.white)
+                        .frame(width: 80, height: 80)
+                        .background(Circle().fill(Color.red))
+                        .shadow(radius: 10)
                 }
             }
-        } message: {
-            Text(NSLocalizedString("running.alert.end_workout.message", comment: "End workout alert message"))
-        }
-        .alert(NSLocalizedString("common.error", comment: "Error"), isPresented: Binding(
-            get: { viewModel.errorMessage != nil },
-            set: { if !$0 { viewModel.errorMessage = nil } }
-        )) {
-            Button(NSLocalizedString("common.ok", comment: "OK button")) {
-                viewModel.errorMessage = nil
-            }
-        } message: {
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-            }
-        }
-        .task {
-            await viewModel.requestAuthorization()
+            .padding(.bottom, 60)
         }
     }
 }
 
-// MARK: - Stat View Component
+// MARK: - Stat Item Component
 
-struct StatView: View {
-    let title: String
+struct StatItem: View {
+    let icon: String
     let value: String
-    let unit: String
+    let label: String
 
     var body: some View {
         VStack(spacing: 8) {
-            Text(title)
-                .font(.headline)
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundColor(.accent)
+
+            Text(value)
+                .font(.system(size: 24, weight: .semibold, design: .rounded))
+                .foregroundColor(.primary)
+
+            Text(label)
+                .font(.caption)
                 .foregroundColor(.secondary)
+        }
+    }
+}
 
-            HStack(alignment: .lastTextBaseline, spacing: 4) {
-                Text(value)
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
-                    .foregroundColor(.primary)
+// MARK: - Scoring View Wrapper
 
-                if !unit.isEmpty {
-                    Text(unit)
-                        .font(.title3)
-                        .foregroundColor(.secondary)
-                }
+struct ScoringViewWrapper: View {
+    let workout: HKWorkout
+    let userId: String
+
+    @State private var user: User?
+    @State private var currentMilestone: Milestone?
+    @State private var isLoading = true
+
+    var body: some View {
+        Group {
+            if isLoading {
+                ProgressView(NSLocalizedString("common.loading", comment: "Loading"))
+            } else {
+                let distance = workout.totalDistance?.doubleValue(for: .meter()) ?? 0
+                let duration = workout.duration
+                let calories = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) ?? 0
+
+                let _ = {
+                    print("📊 ScoringView - Workout Data:")
+                    print("   Distance: \(distance) meters (\(distance/1000.0) km)")
+                    print("   Duration: \(duration) seconds (\(duration/60.0) minutes)")
+                    print("   Calories: \(calories) kcal")
+                    print("   totalDistance raw: \(workout.totalDistance?.description ?? "nil")")
+                }()
+
+                ScoringView(
+                    healthKitManager: HealthKitManager(),
+                    userId: userId,
+                    workoutStartDate: workout.startDate,
+                    workoutEndDate: workout.endDate,
+                    distance: distance,
+                    duration: duration,
+                    calories: calories,
+                    userGoal: user?.profile.goal,
+                    idealFrequency: user?.profile.idealFrequency,
+                    currentMilestone: currentMilestone
+                )
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color(.systemBackground).opacity(0.8))
-        .cornerRadius(15)
-        .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .task {
+            await loadUserData()
+        }
+    }
+
+    private func loadUserData() async {
+        guard let userIdUUID = UUID(uuidString: userId) else {
+            isLoading = false
+            return
+        }
+
+        do {
+            // Load user profile
+            user = try await SupabaseService.shared.getUserProfile(userId: userIdUUID)
+
+            // Load roadmap and get current milestone
+            if let roadmap = try await SupabaseService.shared.getRoadmap(userId: userId) {
+                currentMilestone = roadmap.milestones.first(where: { !$0.isCompleted })
+            }
+        } catch {
+            print("Failed to load user data: \(error)")
+        }
+
+        isLoading = false
     }
 }
 

@@ -20,7 +20,12 @@ class HomeViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showErrorAlert = false
 
+    // Task management to prevent duplicate requests
+    private var loadDataTask: Task<Void, Never>?
+
     init() {
+        print("🔵 HomeViewModel.init() called")
+
         // Listen for workout reflection saved notifications
         NotificationCenter.default.addObserver(
             forName: NSNotification.Name("WorkoutReflectionSaved"),
@@ -29,18 +34,31 @@ class HomeViewModel: ObservableObject {
         ) { [weak self] notification in
             if let reflection = notification.userInfo?["reflection"] as? WorkoutReflection {
                 Task { @MainActor in
-                    self?.updateMilestoneFromReflection(reflection)
+                    print("📬 Received workout reflection notification")
+
+                    // Update milestone and save to Supabase (wait for completion)
+                    await self?.updateMilestoneFromReflection(reflection)
+
+                    // Always reload recent sessions and roadmap to show latest data
+                    await self?.loadRecentSessions()
+                    await self?.reloadRoadmap()
+
+                    print("✅ Home screen refreshed after workout save")
                 }
             }
         }
 
         // Load data asynchronously
-        Task {
+        loadDataTask = Task {
+            print("🔄 Starting initial loadAllData from init()")
             await loadAllData()
+            print("✅ Initial loadAllData completed")
         }
     }
 
     deinit {
+        // Cancel any ongoing tasks
+        loadDataTask?.cancel()
         NotificationCenter.default.removeObserver(self)
     }
 
@@ -71,17 +89,45 @@ class HomeViewModel: ObservableObject {
 
     /// Load all data from Supabase
     func loadAllData() async {
-        guard let userId = UserSessionManager.shared.storedUserId else {
-            // User hasn't completed onboarding
+        print("🔄 loadAllData() called")
+
+        // Check if task was cancelled
+        if Task.isCancelled {
+            print("⚠️ loadAllData: Task cancelled before start")
             return
         }
 
+        guard let userId = UserSessionManager.shared.storedUserId else {
+            print("⚠️ loadAllData: No userId, skipping")
+            return
+        }
+
+        // Prevent duplicate requests
+        guard !isLoading else {
+            print("⚠️ loadAllData already in progress (isLoading=true), skipping duplicate request")
+            return
+        }
+
+        print("🚀 loadAllData: Starting data load (isLoading=false → true)")
         isLoading = true
         errorMessage = nil
 
         do {
+            // Check cancellation before each major operation
+            if Task.isCancelled {
+                print("⚠️ loadAllData: Task cancelled during execution")
+                isLoading = false
+                return
+            }
+
             // Load user profile
             user = try await SupabaseService.shared.getUserProfile(userId: userId)
+
+            if Task.isCancelled {
+                print("⚠️ loadAllData: Task cancelled after getUserProfile")
+                isLoading = false
+                return
+            }
 
             // Load roadmap
             if let loadedRoadmap = try await SupabaseService.shared.getRoadmap(userId: userId.uuidString) {
@@ -108,10 +154,42 @@ class HomeViewModel: ObservableObject {
 
         } catch {
             errorMessage = "データの読み込みに失敗しました: \(error.localizedDescription)"
-            print("Failed to load data from Supabase: \(error)")
+            print("❌ loadAllData failed: \(error)")
         }
 
         isLoading = false
+        print("✅ loadAllData completed (isLoading=true → false)")
+    }
+
+    /// Reload recent workout sessions
+    func loadRecentSessions() async {
+        guard let userId = UserSessionManager.shared.storedUserId else {
+            return
+        }
+
+        do {
+            let sessions = try await SupabaseService.shared.getWorkoutSessions(userId: userId.uuidString, limit: 5)
+            recentSessions = sessions
+            print("✅ Reloaded \(sessions.count) recent sessions")
+        } catch {
+            print("❌ Failed to reload recent sessions: \(error)")
+        }
+    }
+
+    /// Reload roadmap to update progress
+    func reloadRoadmap() async {
+        guard let userId = UserSessionManager.shared.storedUserId else {
+            return
+        }
+
+        do {
+            if let loadedRoadmap = try await SupabaseService.shared.getRoadmap(userId: userId.uuidString) {
+                roadmap = loadedRoadmap
+                print("✅ Reloaded roadmap - Progress: \(loadedRoadmap.progressPercentage)%")
+            }
+        } catch {
+            print("❌ Failed to reload roadmap: \(error)")
+        }
     }
 
     func createDefaultRoadmap() async {
@@ -231,18 +309,16 @@ class HomeViewModel: ObservableObject {
         isLoading = false
     }
 
-    func saveRoadmap() {
+    func saveRoadmap() async {
         guard let roadmap = roadmap else { return }
 
         // Save to Supabase
-        Task {
-            do {
-                try await SupabaseService.shared.saveRoadmap(roadmap)
-                print("Roadmap saved to Supabase successfully")
-            } catch {
-                errorMessage = "ロードマップの保存に失敗しました: \(error.localizedDescription)"
-                print("Failed to save roadmap to Supabase: \(error.localizedDescription)")
-            }
+        do {
+            try await SupabaseService.shared.saveRoadmap(roadmap)
+            print("✅ Roadmap saved to Supabase successfully")
+        } catch {
+            errorMessage = "ロードマップの保存に失敗しました: \(error.localizedDescription)"
+            print("❌ Failed to save roadmap to Supabase: \(error.localizedDescription)")
         }
     }
 
@@ -263,26 +339,36 @@ class HomeViewModel: ObservableObject {
         }
     }
 
-    func toggleMilestone(_ milestone: Milestone) {
+    func toggleMilestone(_ milestone: Milestone) async {
         guard var roadmap = roadmap else { return }
 
         if let index = roadmap.milestones.firstIndex(where: { $0.id == milestone.id }) {
             roadmap.milestones[index].isCompleted.toggle()
             roadmap.milestones[index].completedAt = roadmap.milestones[index].isCompleted ? Date() : nil
             self.roadmap = roadmap
-            saveRoadmap()
+            await saveRoadmap()
         }
     }
 
     func refresh() async {
-        await loadAllData()
+        print("🔄 refresh() called - cancelling existing task if any")
+
+        // Cancel existing task if running
+        loadDataTask?.cancel()
+
+        // Start new task
+        loadDataTask = Task {
+            await loadAllData()
+        }
+
+        // Wait for completion
+        await loadDataTask?.value
     }
 
     /// ワークアウト振り返りを受け取ってマイルストーンを自動更新
-    func updateMilestoneFromReflection(_ reflection: WorkoutReflection) {
+    func updateMilestoneFromReflection(_ reflection: WorkoutReflection) async {
         guard var roadmap = roadmap else { return }
         guard let milestoneProgress = reflection.milestoneProgress else { return }
-        guard milestoneProgress.isAchieved else { return }
 
         // Find the milestone by ID if available, otherwise use first uncompleted
         var index: Int?
@@ -293,10 +379,17 @@ class HomeViewModel: ObservableObject {
         }
 
         if let index = index {
-            roadmap.milestones[index].isCompleted = true
-            roadmap.milestones[index].completedAt = Date()
+            // If achieved, mark as completed
+            if milestoneProgress.isAchieved {
+                roadmap.milestones[index].isCompleted = true
+                roadmap.milestones[index].completedAt = Date()
+                print("✅ Milestone achieved: \(roadmap.milestones[index].title)")
+            }
+
             self.roadmap = roadmap
-            saveRoadmap()
+
+            // Save to Supabase and wait for completion
+            await saveRoadmap()
         }
     }
 

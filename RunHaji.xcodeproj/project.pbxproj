@@ -14,6 +14,7 @@
 		6D5C97BF2EC6BBA900D77E79 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 6D5C97BE2EC6BBA900D77E79 /* Storage */; };
 		6D5C98132EC7DEAB00D77E79 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 6D5C98122EC7DEAB00D77E79 /* Supabase */; };
 		6D6BDDD92EC8397400CBDB8D /* ColorfulX in Frameworks */ = {isa = PBXBuildFile; productRef = 6D6BDDD82EC8397400CBDB8D /* ColorfulX */; };
+		6D6BDE622EC85B3600CBDB8D /* ConfettiSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 6D6BDE612EC85B3600CBDB8D /* ConfettiSwiftUI */; };
 		D656880A2EC8717D0044A97D /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = D65688082EC8717D0044A97D /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
@@ -55,6 +56,7 @@
 				6D5C98132EC7DEAB00D77E79 /* Supabase in Frameworks */,
 				6D5C97B72EC6BBA900D77E79 /* Auth in Frameworks */,
 				6D5C97BF2EC6BBA900D77E79 /* Storage in Frameworks */,
+				6D6BDE622EC85B3600CBDB8D /* ConfettiSwiftUI in Frameworks */,
 				6D5C97BD2EC6BBA900D77E79 /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -114,6 +116,7 @@
 				6D5C97BE2EC6BBA900D77E79 /* Storage */,
 				6D5C98122EC7DEAB00D77E79 /* Supabase */,
 				6D6BDDD82EC8397400CBDB8D /* ColorfulX */,
+				6D6BDE612EC85B3600CBDB8D /* ConfettiSwiftUI */,
 			);
 			productName = RunHaji;
 			productReference = 6D9608C12EC5A106009E2240 /* RunHaji.app */;
@@ -147,6 +150,7 @@
 			packageReferences = (
 				6D5C97B52EC6BBA900D77E79 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				6D6BDDD72EC8397400CBDB8D /* XCRemoteSwiftPackageReference "ColorfulX" */,
+				6D6BDE602EC85B3600CBDB8D /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6D9608C22EC5A106009E2240 /* Products */;
@@ -429,6 +433,14 @@
 				minimumVersion = 6.0.1;
 			};
 		};
+		6D6BDE602EC85B3600CBDB8D /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/simibac/ConfettiSwiftUI";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -466,6 +478,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 6D6BDDD72EC8397400CBDB8D /* XCRemoteSwiftPackageReference "ColorfulX" */;
 			productName = ColorfulX;
+		};
+		6D6BDE612EC85B3600CBDB8D /* ConfettiSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6D6BDE602EC85B3600CBDB8D /* XCRemoteSwiftPackageReference "ConfettiSwiftUI" */;
+			productName = ConfettiSwiftUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
