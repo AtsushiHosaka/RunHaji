@@ -8,10 +8,15 @@
 import Foundation
 import HealthKit
 
-class HealthKitService {
+@MainActor
+class HealthKitService: NSObject {
     static let shared = HealthKitService()
 
     private let healthStore = HKHealthStore()
+
+    // Workout session
+    private var workoutSession: HKWorkoutSession?
+    private var workoutBuilder: HKLiveWorkoutBuilder?
 
     // HealthKit で読み取るデータタイプ
     private let typesToRead: Set<HKObjectType> = [
@@ -23,10 +28,15 @@ class HealthKitService {
 
     // HealthKit に書き込むデータタイプ
     private let typesToWrite: Set<HKSampleType> = [
-        HKObjectType.workoutType()
+        HKObjectType.workoutType(),
+        HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning)!,
+        HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
+        HKObjectType.quantityType(forIdentifier: .heartRate)!
     ]
 
-    private init() {}
+    override private init() {
+        super.init()
+    }
 
     // MARK: - Authorization
 
@@ -38,31 +48,100 @@ class HealthKitService {
         try await healthStore.requestAuthorization(toShare: typesToWrite, read: typesToRead)
     }
 
-    // MARK: - Workout Management
+    // MARK: - Workout Session Management
 
-    // Note: HKWorkoutSession is not used in current implementation.
-    // We use simple start/end time tracking instead.
-    // This method is kept for future live workout session support.
+    func startWorkoutSession() async throws {
+        print("📱 Creating workout configuration...")
+        let configuration = HKWorkoutConfiguration()
+        configuration.activityType = .running
+        configuration.locationType = .outdoor
 
-    func saveWorkout(
-        activityType: HKWorkoutActivityType = .running,
-        start: Date,
-        end: Date,
-        distance: Double, // meters
-        calories: Double,
-        metadata: [String: Any]? = nil
-    ) async throws {
-        let workout = HKWorkout(
-            activityType: activityType,
-            start: start,
-            end: end,
-            duration: end.timeIntervalSince(start),
-            totalEnergyBurned: HKQuantity(unit: .kilocalorie(), doubleValue: calories),
-            totalDistance: HKQuantity(unit: .meter(), doubleValue: distance),
-            metadata: metadata
+        print("📱 Creating workout session...")
+        // Create workout session
+        let session = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
+        let builder = session.associatedWorkoutBuilder()
+
+        print("📱 Setting up data source...")
+        // Set data source
+        builder.dataSource = HKLiveWorkoutDataSource(
+            healthStore: healthStore,
+            workoutConfiguration: configuration
         )
 
-        try await healthStore.save(workout)
+        workoutSession = session
+        workoutBuilder = builder
+
+        print("📱 Starting activity...")
+        // Start session
+        session.startActivity(with: Date())
+
+        print("📱 Beginning collection...")
+        try await builder.beginCollection(at: Date())
+
+        print("✅ Workout session fully initialized")
+    }
+
+    func pauseWorkoutSession() {
+        guard let session = workoutSession else { return }
+        session.pause()
+    }
+
+    func resumeWorkoutSession() {
+        guard let session = workoutSession else { return }
+        session.resume()
+    }
+
+    func endWorkoutSession() async throws -> HKWorkout? {
+        guard let session = workoutSession,
+              let builder = workoutBuilder else {
+            return nil
+        }
+
+        // End collection
+        session.end()
+        try await builder.endCollection(at: Date())
+
+        // Finalize workout
+        let workout = try await builder.finishWorkout()
+
+        // Clean up
+        workoutSession = nil
+        workoutBuilder = nil
+
+        return workout
+    }
+
+    // Get current workout statistics
+    func getWorkoutStatistics(for identifier: HKQuantityTypeIdentifier) -> HKStatistics? {
+        guard let builder = workoutBuilder else { return nil }
+        let quantityType = HKQuantityType.quantityType(forIdentifier: identifier)!
+        return builder.statistics(for: quantityType)
+    }
+
+    func getCurrentDistance() -> Double {
+        guard let statistics = getWorkoutStatistics(for: .distanceWalkingRunning) else {
+            return 0.0
+        }
+        return statistics.sumQuantity()?.doubleValue(for: .meter()) ?? 0.0
+    }
+
+    func getCurrentCalories() -> Double {
+        guard let statistics = getWorkoutStatistics(for: .activeEnergyBurned) else {
+            return 0.0
+        }
+        return statistics.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0.0
+    }
+
+    func getCurrentHeartRate() -> Double? {
+        guard let statistics = getWorkoutStatistics(for: .heartRate) else {
+            return nil
+        }
+        return statistics.mostRecentQuantity()?.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
+    }
+
+    func getCurrentDuration() -> TimeInterval {
+        guard let builder = workoutBuilder else { return 0 }
+        return builder.elapsedTime
     }
 
     // MARK: - Data Retrieval

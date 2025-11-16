@@ -88,7 +88,7 @@ final class OpenAIService {
                     content: prompt
                 )
             ],
-            temperature: 0.7,
+            temperature: 1.0,
             response_format: ChatCompletionRequest.ResponseFormat(type: "json_object")
         )
 
@@ -201,7 +201,7 @@ final class OpenAIService {
                     content: prompt
                 )
             ],
-            temperature: 0.7,
+            temperature: 1.0,
             response_format: ChatCompletionRequest.ResponseFormat(type: "json_object")
         )
 

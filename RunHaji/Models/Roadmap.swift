@@ -54,6 +54,7 @@ struct Roadmap: Codable, Identifiable {
 
     var progressPercentage: Double {
         guard !milestones.isEmpty else { return 0.0 }
+        // ロードマップ全体の進捗（完了したマイルストーン数 / 全マイルストーン数）
         return Double(completedMilestones) / Double(milestones.count) * 100
     }
 }
