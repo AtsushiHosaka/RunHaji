@@ -24,7 +24,6 @@ class HomeViewModel: ObservableObject {
     private var loadDataTask: Task<Void, Never>?
 
     init() {
-        print("🔵 HomeViewModel.init() called")
 
         // Listen for workout reflection saved notifications
         NotificationCenter.default.addObserver(
@@ -34,7 +33,6 @@ class HomeViewModel: ObservableObject {
         ) { [weak self] notification in
             if let reflection = notification.userInfo?["reflection"] as? WorkoutReflection {
                 Task { @MainActor in
-                    print("📬 Received workout reflection notification")
 
                     // Update milestone and save to Supabase (wait for completion)
                     await self?.updateMilestoneFromReflection(reflection)
@@ -43,16 +41,13 @@ class HomeViewModel: ObservableObject {
                     await self?.loadRecentSessions()
                     await self?.reloadRoadmap()
 
-                    print("✅ Home screen refreshed after workout save")
                 }
             }
         }
 
         // Load data asynchronously
         loadDataTask = Task {
-            print("🔄 Starting initial loadAllData from init()")
             await loadAllData()
-            print("✅ Initial loadAllData completed")
         }
     }
 
@@ -89,33 +84,27 @@ class HomeViewModel: ObservableObject {
 
     /// Load all data from Supabase
     func loadAllData() async {
-        print("🔄 loadAllData() called")
 
         // Check if task was cancelled
         if Task.isCancelled {
-            print("⚠️ loadAllData: Task cancelled before start")
             return
         }
 
         guard let userId = UserSessionManager.shared.storedUserId else {
-            print("⚠️ loadAllData: No userId, skipping")
             return
         }
 
         // Prevent duplicate requests
         guard !isLoading else {
-            print("⚠️ loadAllData already in progress (isLoading=true), skipping duplicate request")
             return
         }
 
-        print("🚀 loadAllData: Starting data load (isLoading=false → true)")
         isLoading = true
         errorMessage = nil
 
         do {
             // Check cancellation before each major operation
             if Task.isCancelled {
-                print("⚠️ loadAllData: Task cancelled during execution")
                 isLoading = false
                 return
             }
@@ -124,7 +113,6 @@ class HomeViewModel: ObservableObject {
             user = try await SupabaseService.shared.getUserProfile(userId: userId)
 
             if Task.isCancelled {
-                print("⚠️ loadAllData: Task cancelled after getUserProfile")
                 isLoading = false
                 return
             }
@@ -158,7 +146,6 @@ class HomeViewModel: ObservableObject {
         }
 
         isLoading = false
-        print("✅ loadAllData completed (isLoading=true → false)")
     }
 
     /// Reload recent workout sessions
@@ -170,7 +157,6 @@ class HomeViewModel: ObservableObject {
         do {
             let sessions = try await SupabaseService.shared.getWorkoutSessions(userId: userId.uuidString, limit: 5)
             recentSessions = sessions
-            print("✅ Reloaded \(sessions.count) recent sessions")
         } catch {
             print("❌ Failed to reload recent sessions: \(error)")
         }
@@ -185,7 +171,6 @@ class HomeViewModel: ObservableObject {
         do {
             if let loadedRoadmap = try await SupabaseService.shared.getRoadmap(userId: userId.uuidString) {
                 roadmap = loadedRoadmap
-                print("✅ Reloaded roadmap - Progress: \(loadedRoadmap.progressPercentage)%")
             }
         } catch {
             print("❌ Failed to reload roadmap: \(error)")
@@ -205,12 +190,10 @@ class HomeViewModel: ObservableObject {
         showErrorAlert = false
 
         do {
-            print("🚀 Initializing roadmap via Edge Function...")
 
             // Call Edge Function to generate everything (roadmap + gear + workouts)
             let roadmapId = try await SupabaseService.shared.initializeRoadmap(user: user)
 
-            print("✅ Roadmap initialized with ID: \(roadmapId)")
 
             // Load the created roadmap from Supabase
             if let userId = UserSessionManager.shared.storedUserId {
@@ -224,7 +207,6 @@ class HomeViewModel: ObservableObject {
             await loadUserProducts()
             await loadUpcomingWorkouts()
 
-            print("✅ All data loaded successfully")
         } catch {
             print("❌ Failed to initialize roadmap: \(error)")
             errorMessage = "ロードマップの生成に失敗しました。\n\(error.localizedDescription)\n\nもう一度お試しください。"
@@ -242,7 +224,6 @@ class HomeViewModel: ObservableObject {
 
         do {
             upcomingWorkouts = try await SupabaseService.shared.getUpcomingWorkouts(userId: userId.uuidString)
-            print("✅ Loaded \(upcomingWorkouts.count) upcoming workouts")
         } catch {
             print("❌ Failed to load upcoming workouts: \(error)")
         }
@@ -266,7 +247,6 @@ class HomeViewModel: ObservableObject {
                 roadmapGoal: roadmap?.goal.rawValue ?? "健康改善"
             )
 
-            print("✅ Gear recommendations generated successfully")
 
             // Wait a moment for database to commit
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
@@ -274,7 +254,6 @@ class HomeViewModel: ObservableObject {
             // Reload user products after recommendations are generated
             await loadUserProducts()
 
-            print("✅ Loaded \(userProducts.count) user products after Edge Function")
         } catch {
             print("❌ Failed to generate gear recommendations: \(error)")
             print("Error details: \(String(describing: error))")
@@ -315,7 +294,6 @@ class HomeViewModel: ObservableObject {
         // Save to Supabase
         do {
             try await SupabaseService.shared.saveRoadmap(roadmap)
-            print("✅ Roadmap saved to Supabase successfully")
         } catch {
             errorMessage = "ロードマップの保存に失敗しました: \(error.localizedDescription)"
             print("❌ Failed to save roadmap to Supabase: \(error.localizedDescription)")
@@ -351,7 +329,6 @@ class HomeViewModel: ObservableObject {
     }
 
     func refresh() async {
-        print("🔄 refresh() called - cancelling existing task if any")
 
         // Cancel existing task if running
         loadDataTask?.cancel()
@@ -383,7 +360,6 @@ class HomeViewModel: ObservableObject {
             if milestoneProgress.isAchieved {
                 roadmap.milestones[index].isCompleted = true
                 roadmap.milestones[index].completedAt = Date()
-                print("✅ Milestone achieved: \(roadmap.milestones[index].title)")
             }
 
             self.roadmap = roadmap
@@ -399,22 +375,18 @@ class HomeViewModel: ObservableObject {
     func loadUserProducts() async {
         guard let userId = UserSessionManager.shared.storedUserId,
               let roadmapId = roadmap?.id else {
-            print("⚠️ Cannot load products: userId or roadmapId is nil")
             return
         }
 
-        print("🔍 Loading user products for userId=\(userId), roadmapId=\(roadmapId)")
 
         do {
             userProducts = try await SupabaseService.shared.getUserProducts(
                 userId: userId.uuidString,
                 roadmapId: roadmapId
             )
-            print("✅ Loaded \(userProducts.count) user products")
 
             // Debug: print each product
             for (index, userProduct) in userProducts.enumerated() {
-                print("  [\(index)] \(userProduct.product?.title ?? "Unknown") - purchased: \(userProduct.isPurchased)")
             }
         } catch {
             print("❌ Failed to load user products: \(error)")
