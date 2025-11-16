@@ -12,24 +12,24 @@ struct AvailableTimeStepView: View {
 
     var body: some View {
         VStack(spacing: 30) {
-            Text("1週間に使える時間は？")
+            Text(NSLocalizedString("available_time.title", comment: "Available time title"))
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .padding(.top, 40)
 
             VStack(spacing: 20) {
-                Text("\(viewModel.availableTime)時間")
+                Text(String(format: NSLocalizedString("available_time.hours.format", comment: "Hours format"), viewModel.availableTime))
                     .font(.system(size: 60, weight: .bold))
                     .foregroundColor(.blue)
 
                 Stepper("", value: $viewModel.availableTime, in: 1...20)
                     .labelsHidden()
-                    .accessibilityLabel("週あたりの利用可能時間")
-                    .accessibilityValue("\(viewModel.availableTime)時間")
+                    .accessibilityLabel(NSLocalizedString("available_time.stepper.label", comment: "Stepper label"))
+                    .accessibilityValue(String(format: NSLocalizedString("available_time.hours.format", comment: "Hours format"), viewModel.availableTime))
                     .padding(.horizontal, 50)
             }
 
-            Text("運動に使える週あたりの時間を教えてください")
+            Text(NSLocalizedString("available_time.subtitle", comment: "Available time subtitle"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

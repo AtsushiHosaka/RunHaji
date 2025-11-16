@@ -26,7 +26,7 @@ struct RunningView: View {
                 Spacer()
 
                 // Title
-                Text("ランニング")
+                Text(NSLocalizedString("running.title", comment: "Running title"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
@@ -35,21 +35,21 @@ struct RunningView: View {
                 VStack(spacing: 30) {
                     // Distance
                     StatView(
-                        title: "距離",
+                        title: NSLocalizedString("running.stats.distance", comment: "Distance"),
                         value: viewModel.formattedDistance(),
                         unit: "km"
                     )
 
                     // Timer
                     StatView(
-                        title: "時間",
+                        title: NSLocalizedString("running.stats.duration", comment: "Duration"),
                         value: viewModel.formattedDuration(),
                         unit: ""
                     )
 
                     // Pace
                     StatView(
-                        title: "ペース",
+                        title: NSLocalizedString("running.stats.pace", comment: "Pace"),
                         value: viewModel.formattedPace(),
                         unit: "min/km"
                     )
@@ -63,7 +63,7 @@ struct RunningView: View {
                     Button(action: {
                         viewModel.requestEndWorkout()
                     }) {
-                        Text("終了")
+                        Text(NSLocalizedString("running.button.finish", comment: "Finish button"))
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
@@ -76,7 +76,7 @@ struct RunningView: View {
                     Button(action: {
                         viewModel.startWorkout()
                     }) {
-                        Text("START")
+                        Text(NSLocalizedString("running.button.start", comment: "Start button"))
                             .font(.title)
                             .fontWeight(.bold)
                             .foregroundColor(.white)
@@ -91,23 +91,23 @@ struct RunningView: View {
             }
             .padding()
         }
-        .alert("ワークアウトを終了しますか?", isPresented: $viewModel.showingEndWorkoutAlert) {
-            Button("キャンセル", role: .cancel) {
+        .alert(NSLocalizedString("running.alert.end_workout.title", comment: "End workout alert title"), isPresented: $viewModel.showingEndWorkoutAlert) {
+            Button(NSLocalizedString("common.cancel", comment: "Cancel button"), role: .cancel) {
                 viewModel.cancelEndWorkout()
             }
-            Button("終了", role: .destructive) {
+            Button(NSLocalizedString("running.button.finish", comment: "Finish button"), role: .destructive) {
                 Task {
                     await viewModel.endWorkout()
                 }
             }
         } message: {
-            Text("ワークアウトを終了すると、データが保存されます。")
+            Text(NSLocalizedString("running.alert.end_workout.message", comment: "End workout alert message"))
         }
-        .alert("エラー", isPresented: Binding(
+        .alert(NSLocalizedString("common.error", comment: "Error"), isPresented: Binding(
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }
         )) {
-            Button("OK") {
+            Button(NSLocalizedString("common.ok", comment: "OK button")) {
                 viewModel.errorMessage = nil
             }
         } message: {

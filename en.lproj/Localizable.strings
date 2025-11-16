@@ -1,0 +1,223 @@
+// 英語用の文字列
+"home.title" = "Hole List";
+"home.add_hole" = "Add Hole";
+"home.delete_hole" = "Delete Hole";
+"home.delete_confirmation.title" = "Delete this hole?";
+"home.delete_confirmation.message" = "This action cannot be undone.";
+"common.delete" = "Delete";
+"common.cancel" = "Cancel";
+"common.skip" = "Skip";
+
+"settings.title" = "Settings";
+"settings.terms_of_service" = "Terms of Service";
+"settings.privacy_policy" = "Privacy Policy";
+"settings.contact_us" = "Contact Us";
+"settings.app_version" = "App Version";
+
+"goal.title" = "What do you want to be?";
+"goal.subtitle" = "Please select your goal";
+
+"basicinfo.title" = "Tell us about yourself";
+"basicinfo.subtitle" = "Please select your basic information";
+"basicinfo.age" = "Age";
+"basicinfo.age.unit" = "years old";
+"basicinfo.height" = "Height";
+"basicinfo.height.unit" = "cm";
+"basicinfo.weight" = "Weight";
+"basicinfo.weight.unit" = "kg";
+"basicinfo.age.picker.title" = "Select Age";
+"basicinfo.height.picker.title" = "Select Height";
+"basicinfo.weight.picker.title" = "Select Weight";
+"common.done" = "Done";
+
+"available_time.title" = "How much time do you have per week?";
+"available_time.hours.format" = "%d hours";
+"available_time.stepper.label" = "Available time per week";
+"available_time.subtitle" = "Please tell us how much time you can spend on exercise per week";
+
+"scoring.header.title" = "Good job!";
+"scoring.header.subtitle" = "Saving your workout";
+"scoring.nav.title" = "Workout Record";
+"scoring.summary.title" = "Workout Summary";
+"scoring.summary.distance" = "Distance";
+"scoring.summary.duration" = "Duration";
+"scoring.summary.pace" = "Pace";
+"scoring.summary.calories" = "Calories";
+"scoring.analyzing.text" = "AI is analyzing your workout...";
+"scoring.reflection.title" = "Today's Reflection";
+"scoring.reflection.rpe.level" = "RPE Level";
+"scoring.reflection.reflection" = "Reflection";
+"scoring.reflection.suggestions" = "Suggestions for next time";
+"scoring.reflection.milestone.achieved" = "Milestone Achieved!";
+"scoring.progress.title" = "This Week's Progress";
+"scoring.progress.completion_rate" = "Completion Rate";
+"scoring.progress.weekly_distance" = "Weekly Distance";
+"scoring.progress.weekly_workouts" = "Weekly Workouts";
+"scoring.progress.workouts.unit" = "%d workouts";
+"scoring.progress.next_milestone" = "Next Milestone";
+"scoring.save_button" = "Save Record";
+"scoring.fallback.title" = "AI Analysis Failed";
+"scoring.fallback.subtitle" = "You can save the workout with basic information only";
+"scoring.fallback.save_button" = "Save without Analysis";
+"scoring.success.message" = "Saved";
+
+"rpe.title" = "Perceived Exertion";
+"rpe.description" = "Please rate how hard the workout felt immediately after you finished.";
+"rpe.slider.label" = "Select the intensity of the workout";
+"rpe.slider.min.label" = "Very Easy";
+"rpe.slider.max.label" = "Very Hard";
+
+"workout_detail.loading_reflection" = "Loading reflection...";
+"workout_detail.nav.title" = "Workout Detail";
+"workout_detail.stats.distance" = "Distance";
+"workout_detail.stats.duration" = "Duration";
+"workout_detail.stats.pace" = "Pace";
+"workout_detail.stats.calories" = "Calories";
+"workout_detail.reflection.title" = "AI Reflection";
+"workout_detail.reflection.todays_run" = "Today's Run";
+"workout_detail.reflection.suggestions" = "Suggestions for next time";
+"workout_detail.reflection.milestone_achieved" = "Milestone Achieved!";
+"workout_detail.reflection.congratulations" = "Congratulations!";
+
+"workout_history.loading" = "Loading...";
+"workout_history.nav.title" = "Workout History";
+"workout_history.empty.title" = "No workouts yet";
+"workout_history.empty.subtitle" = "Record your runs to see your history and reflections.";
+
+"gear.nav.title" = "Recommended Gear";
+"gear.header.title" = "Recommended Gear for You";
+"gear.header.subtitle" = "We introduce items necessary to start running, according to your budget.";
+"gear.loading_products" = "Loading products...";
+
+"common.back" = "Back";
+"common.next" = "Next";
+"onboarding.error.save_profile" = "Failed to save profile: %@";
+"common.error" = "Error";
+
+"ideal_frequency.title" = "What's your ideal workout frequency?";
+"ideal_frequency.frequency_format" = "%d times a week";
+"ideal_frequency.accessibility.label" = "Ideal workout frequency";
+"ideal_frequency.description" = "How many times a week would you like to work out?";
+
+"current_frequency.title" = "What's your current workout frequency?";
+"current_frequency.accessibility.label" = "Current workout frequency";
+"current_frequency.description" = "How many times a week do you currently work out?\n(It's okay if it's 0)";
+
+"common.frequency_format.week" = "%d times a week";
+
+"milestone_detail.completed_date" = "Completed: %@";
+"milestone_detail.progress_title" = "Progress";
+"milestone_detail.progress_prompt" = "Keep working out towards this milestone!";
+"milestone_detail.days_remaining" = "%d days remaining";
+"milestone_detail.details_title" = "Goal Details";
+"milestone_detail.recommended_gear_title" = "Recommended Gear";
+"common.see_more" = "See More";
+"milestone_detail.recommended_gear_subtitle" = "Items to help you achieve this milestone";
+"milestone_detail.tips_title" = "Tips for Success";
+"milestone_detail.tip1" = "Go at your own pace and don't overdo it";
+"milestone_detail.tip2" = "Don't forget to stay hydrated";
+"milestone_detail.tip3" = "Stretch well after your workout";
+"milestone.preview.first_run.title" = "First Run";
+"milestone.preview.first_run.description" = "Complete a 15-minute run";
+
+"greeting.morning" = "Good morning";
+"greeting.afternoon" = "Good afternoon";
+"greeting.evening" = "Good evening";
+
+"step_progress.keep_going" = "Keep going toward your next step";
+
+"goal.option.lose_weight.title" = "Lose Weight";
+"goal.option.build_stamina.title" = "Build Stamina";
+"goal.option.stress_relief.title" = "Relieve Stress";
+"goal.option.complete_distance.title" = "Complete a Distance";
+"goal.option.health_improvement.title" = "Improve Health";
+
+"goal.option.lose_weight.subtitle" = "Reduce fat to improve appearance and health";
+"goal.option.build_stamina.subtitle" = "Build endurance to run longer";
+"goal.option.stress_relief.subtitle" = "Run to refresh and reset your mood";
+"goal.option.complete_distance.subtitle" = "Aim to complete 5K/10K, etc.";
+"goal.option.health_improvement.subtitle" = "Improve daily well-being and health metrics";
+
+"goal.roadmap_title.lose_weight" = "Path to Weight Loss";
+"goal.roadmap_title.build_stamina" = "Path to Better Stamina";
+"goal.roadmap_title.stress_relief" = "Path to Stress Relief";
+"goal.roadmap_title.complete_distance" = "Path to Race Completion";
+"goal.roadmap_title.health_improvement" = "Path to Better Health";
+
+"running.title" = "Running";
+"running.stats.distance" = "Distance";
+"running.stats.duration" = "Duration";
+"running.stats.pace" = "Pace";
+"running.button.start" = "Start";
+"running.button.finish" = "Finish";
+"running.alert.end_workout.title" = "End Workout?";
+"running.alert.end_workout.message" = "Save and finish this workout";
+"common.ok" = "OK";
+
+"roadmap.title" = "Roadmap";
+"roadmap.target_date" = "Target Date: %@";
+"roadmap.generating.title" = "Generating...";
+"roadmap.generating.subtitle" = "Creating your personalized roadmap";
+"roadmap.empty.title" = "No roadmap created yet";
+"roadmap.empty.create_button" = "Create Roadmap";
+"roadmap.milestone.completed" = "Completed: %@";
+"roadmap.milestone.workouts_count" = "%d workouts";
+"roadmap.milestone.status.completed" = "Completed";
+"roadmap.milestone.status.pending" = "Pending";
+
+"settings.profile.section" = "Profile";
+"settings.profile.basic_info" = "Basic Information";
+"settings.profile.goal_setting" = "Goal Settings";
+"settings.profile.age_height_format" = "%d years old・%.0fcm";
+"settings.data.section" = "Data";
+"settings.data.sync_status" = "Sync Status";
+"settings.data.manual_sync" = "Manual Sync";
+"settings.app_info.section" = "About";
+"settings.app_info.version" = "Version";
+"settings.app_info.privacy_policy" = "Privacy Policy";
+"settings.app_info.terms" = "Terms of Service";
+"settings.danger.reset_button" = "Delete All Data and Reset";
+"settings.danger.alert.title" = "Delete Data";
+"settings.danger.alert.message" = "All data (roadmap, workout history, profile) will be deleted and you will return to the onboarding screen. Are you sure?";
+"settings.danger.alert.cancel" = "Cancel";
+"settings.danger.alert.delete" = "Delete";
+"settings.error.title" = "Error";
+
+"home.greeting" = "Let's do our best today!";
+"home.progress.title" = "Achievement Status";
+"home.progress.completed_format" = "%d / %d";
+"home.progress.percentage_format" = "%d%% Complete";
+"home.upcoming_workouts.title" = "Upcoming Workouts";
+"home.upcoming_workouts.empty" = "No scheduled workouts";
+"home.recent_activity.title" = "Recent Activity";
+"home.recent_activity.empty" = "No workout records yet";
+"home.recent_activity.running" = "Running";
+"home.recent_activity.distance" = "Distance";
+"home.recent_activity.duration" = "Duration";
+"home.recent_activity.calories" = "Calories";
+"home.roadmap_error.title" = "Roadmap Generation Error";
+"home.roadmap_error.retry" = "Retry";
+
+"gear_list.title" = "Gear Needed";
+"gear_list.empty" = "Loading recommended gear...";
+"gear_list.price_format" = "¥%@";
+"gear_list.purchased" = "Purchased";
+"gear_list.purchase_button" = "Purchase";
+
+"tab.home" = "Home";
+"tab.running" = "Running";
+"tab.gear" = "Gear";
+"tab.history" = "History";
+"tab.settings" = "Settings";
+
+"profile_edit.title" = "Edit Profile";
+"profile_edit.basic_info" = "Basic Information";
+"profile_edit.age" = "Age";
+"profile_edit.height" = "Height";
+"profile_edit.weight" = "Weight";
+"profile_edit.weekly_goal" = "Weekly Goal";
+"profile_edit.weekly_frequency_format" = "%d times a week";
+"profile_edit.save" = "Save";
+
+"goal_edit.title" = "Select Goal";
+"goal_edit.save" = "Save";

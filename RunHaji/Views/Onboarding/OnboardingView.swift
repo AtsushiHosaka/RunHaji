@@ -42,7 +42,7 @@ struct OnboardingView: View {
             // Navigation Buttons
             HStack(spacing: 20) {
                 if viewModel.currentStep > 0 {
-                    Button("戻る") {
+                    Button(NSLocalizedString("common.back", comment: "")) {
                         withAnimation {
                             viewModel.previousStep()
                         }
@@ -53,7 +53,7 @@ struct OnboardingView: View {
                 Spacer()
 
                 if viewModel.currentStep < viewModel.totalSteps - 1 {
-                    Button("次へ") {
+                    Button(NSLocalizedString("common.next", comment: "")) {
                         withAnimation {
                             viewModel.nextStep()
                         }
@@ -61,13 +61,13 @@ struct OnboardingView: View {
                     .buttonStyle(.borderedProminent)
                     .disabled(!viewModel.canProceed())
                 } else {
-                    Button("完了") {
+                    Button(NSLocalizedString("common.done", comment: "")) {
                         Task {
                             do {
                                 try await viewModel.completeOnboarding()
                                 onComplete()
                             } catch {
-                                errorMessage = "プロフィールの保存に失敗しました: \(error.localizedDescription)"
+                                errorMessage = String(format: NSLocalizedString("onboarding.error.save_profile", comment: ""), error.localizedDescription)
                                 showError = true
                             }
                         }
@@ -80,7 +80,7 @@ struct OnboardingView: View {
         }
         .tint(.accent)
         .interactiveDismissDisabled()
-        .alert("エラー", isPresented: $showError) {
+        .alert(NSLocalizedString("common.error", comment: ""), isPresented: $showError) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(errorMessage)

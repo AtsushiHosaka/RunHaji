@@ -18,7 +18,7 @@ struct RoadmapView: View {
                 generatingView
             } else if let roadmap = roadmap {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("ロードマップ")
+                    Text(NSLocalizedString("roadmap.title", comment: "Roadmap title"))
                         .font(.headline)
 
                     Text(roadmap.title)
@@ -30,7 +30,7 @@ struct RoadmapView: View {
                         HStack {
                             Image(systemName: "flag.checkered")
                                 .foregroundColor(.orange)
-                            Text("目標日: \(formattedDate(targetDate))")
+                            Text(String(format: NSLocalizedString("roadmap.target_date", comment: "Target date"), formattedDate(targetDate)))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                         }
@@ -63,11 +63,11 @@ struct RoadmapView: View {
                 .scaleEffect(1.5)
                 .tint(.accent)
 
-            Text("生成中...")
+            Text(NSLocalizedString("roadmap.generating.title", comment: "Generating"))
                 .font(.headline)
                 .foregroundColor(.primary)
 
-            Text("あなた専用のロードマップを作成しています")
+            Text(NSLocalizedString("roadmap.generating.subtitle", comment: "Generating subtitle"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -82,7 +82,7 @@ struct RoadmapView: View {
                 .font(.largeTitle)
                 .foregroundColor(.gray)
 
-            Text("ロードマップがまだ作成されていません")
+            Text(NSLocalizedString("roadmap.empty.title", comment: "No roadmap"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
@@ -92,7 +92,7 @@ struct RoadmapView: View {
                         await onGenerateRoadmap()
                     }
                 }) {
-                    Text("ロードマップを作成")
+                    Text(NSLocalizedString("roadmap.empty.create_button", comment: "Create roadmap"))
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .foregroundColor(.white)
@@ -108,7 +108,7 @@ struct RoadmapView: View {
     }
 
     private func formattedDate(_ date: Date) -> String {
-        DateFormatter.japaneseMedium.string(from: date)
+        DateFormatter.localizedMedium.string(from: date)
     }
 }
 
@@ -129,7 +129,7 @@ struct MilestoneCard: View {
                             .font(.caption2)
                             .foregroundColor(milestone.isCompleted ? .white : .gray)
                     )
-                    .accessibilityLabel(milestone.isCompleted ? "完了済み" : "未完了")
+                    .accessibilityLabel(milestone.isCompleted ? NSLocalizedString("roadmap.milestone.status.completed", comment: "") : NSLocalizedString("roadmap.milestone.status.pending", comment: ""))
 
                 if !isLast {
                     Rectangle()
@@ -167,7 +167,7 @@ struct MilestoneCard: View {
 
                     if milestone.isCompleted, let completedAt = milestone.completedAt {
                         Label(
-                            "完了: \(formattedDate(completedAt))",
+                            String(format: NSLocalizedString("roadmap.milestone.completed", comment: ""), formattedDate(completedAt)),
                             systemImage: "checkmark.circle.fill"
                         )
                         .font(.caption2)
@@ -177,7 +177,7 @@ struct MilestoneCard: View {
 
                 // Workouts count
                 if !milestone.workouts.isEmpty {
-                    Text("\(milestone.workouts.count)回のワークアウト")
+                    Text(String(format: NSLocalizedString("roadmap.milestone.workouts_count", comment: ""), milestone.workouts.count))
                         .font(.caption2)
                         .foregroundColor(.blue)
                         .padding(.horizontal, 8)
@@ -191,14 +191,14 @@ struct MilestoneCard: View {
             Spacer()
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(milestone.title), \(milestone.isCompleted ? "完了済み" : "未完了")")
+            .accessibilityLabel("\(milestone.title), \(milestone.isCompleted ? NSLocalizedString("roadmap.milestone.status.completed", comment: "") : NSLocalizedString("roadmap.milestone.status.pending", comment: ""))")
             .accessibilityHint(milestone.description ?? "")
         }
         .buttonStyle(PlainButtonStyle())
     }
 
     private func formattedDate(_ date: Date) -> String {
-        DateFormatter.japaneseShort.string(from: date)
+        DateFormatter.localizedShort.string(from: date)
     }
 }
 

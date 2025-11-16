@@ -79,7 +79,7 @@ struct MilestoneDetailView: View {
                 HStack {
                     Image(systemName: "star.fill")
                         .foregroundColor(.accent)
-                    Text("達成日: \(formattedDate(completedAt))")
+                    Text(String(format: NSLocalizedString("milestone_detail.completed_date", comment: ""), formattedDate(completedAt)))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -95,11 +95,11 @@ struct MilestoneDetailView: View {
 
     private var progressSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("進捗状況")
+            Text(NSLocalizedString("milestone_detail.progress_title", comment: ""))
                 .font(.headline)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("このマイルストーンに向けてワークアウトを続けましょう！")
+                Text(NSLocalizedString("milestone_detail.progress_prompt", comment: ""))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
 
@@ -109,7 +109,7 @@ struct MilestoneDetailView: View {
                         HStack(spacing: 8) {
                             Image(systemName: "clock")
                                 .foregroundColor(.accent)
-                            Text("目標まで残り\(daysRemaining)日")
+                            Text(String(format: NSLocalizedString("milestone_detail.days_remaining", comment: ""), daysRemaining))
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                         }
@@ -133,7 +133,7 @@ struct MilestoneDetailView: View {
 
     private func descriptionSection(_ description: String) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("目標の詳細")
+            Text(NSLocalizedString("milestone_detail.details_title", comment: ""))
                 .font(.headline)
 
             Text(description)
@@ -151,17 +151,17 @@ struct MilestoneDetailView: View {
     private var recommendedProductsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("おすすめのギア")
+                Text(NSLocalizedString("milestone_detail.recommended_gear_title", comment: ""))
                     .font(.headline)
                 Spacer()
-                NavigationLink("もっと見る") {
+                NavigationLink(NSLocalizedString("common.see_more", comment: "")) {
                     GearView()
                 }
                 .font(.subheadline)
                 .foregroundColor(.accent)
             }
 
-            Text("このマイルストーン達成に役立つアイテム")
+            Text(NSLocalizedString("milestone_detail.recommended_gear_subtitle", comment: ""))
                 .font(.caption)
                 .foregroundColor(.secondary)
 
@@ -184,23 +184,23 @@ struct MilestoneDetailView: View {
 
     private var tipsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("達成のためのヒント")
+            Text(NSLocalizedString("milestone_detail.tips_title", comment: ""))
                 .font(.headline)
 
             VStack(alignment: .leading, spacing: 12) {
                 TipRow(
                     icon: "lightbulb.fill",
-                    text: "無理をせず、自分のペースで進めましょう",
+                    text: NSLocalizedString("milestone_detail.tip1", comment: ""),
                     color: .yellow
                 )
                 TipRow(
                     icon: "heart.fill",
-                    text: "水分補給を忘れずに",
+                    text: NSLocalizedString("milestone_detail.tip2", comment: ""),
                     color: .red
                 )
                 TipRow(
                     icon: "checkmark.circle.fill",
-                    text: "ワークアウト後はしっかりストレッチ",
+                    text: NSLocalizedString("milestone_detail.tip3", comment: ""),
                     color: .green
                 )
             }
@@ -228,7 +228,7 @@ struct MilestoneDetailView: View {
     }
 
     private func formattedDate(_ date: Date) -> String {
-        DateFormatter.japaneseMedium.string(from: date)
+        DateFormatter.localizedMedium.string(from: date)
     }
 }
 
@@ -254,7 +254,7 @@ struct TipRow: View {
     NavigationView {
         MilestoneDetailView(
             milestone: Milestone(
-                title: "初めてのランニング",
+                title: NSLocalizedString("milestone.preview.first_run.title", comment: ""),
                 description: "15分間のランニングを完了する",
                 targetDate: Calendar.current.date(byAdding: .day, value: 7, to: Date()),
                 isCompleted: false

@@ -60,15 +60,15 @@ struct HomeView: View {
                 await viewModel.refresh()
             }
             .alert(
-                "ロードマップ生成エラー",
+                NSLocalizedString("home.roadmap_error.title", comment: ""),
                 isPresented: $viewModel.showErrorAlert,
                 actions: {
-                    Button("再試行") {
+                    Button(NSLocalizedString("home.roadmap_error.retry", comment: "")) {
                         Task {
                             await viewModel.createDefaultRoadmap()
                         }
                     }
-                    Button("キャンセル", role: .cancel) {
+                    Button(NSLocalizedString("common.cancel", comment: ""), role: .cancel) {
                         viewModel.showErrorAlert = false
                     }
                 },
@@ -87,7 +87,7 @@ struct HomeView: View {
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("今日も頑張りましょう!")
+            Text(NSLocalizedString("home.greeting", comment: ""))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
@@ -98,13 +98,13 @@ struct HomeView: View {
     private var progressOverviewSection: some View {
         VStack(spacing: 16) {
             HStack {
-                Text("達成状況")
+                Text(NSLocalizedString("home.progress.title", comment: ""))
                     .font(.headline)
                     .foregroundColor(.primary)
 
                 Spacer()
 
-                Text("\(viewModel.completedMilestones) / \(viewModel.totalMilestones)")
+                Text(String(format: NSLocalizedString("home.progress.completed_format", comment: ""), viewModel.completedMilestones, viewModel.totalMilestones))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -123,7 +123,7 @@ struct HomeView: View {
             }
             .frame(height: 12)
 
-            Text("\(Int(viewModel.progressPercentage))% 完了")
+            Text(String(format: NSLocalizedString("home.progress.percentage_format", comment: ""), Int(viewModel.progressPercentage)))
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -137,12 +137,12 @@ struct HomeView: View {
 
     private var upcomingWorkoutsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("今後の予定")
+            Text(NSLocalizedString("home.upcoming_workouts.title", comment: ""))
                 .font(.headline)
                 .padding(.horizontal)
 
             if viewModel.upcomingWorkouts.isEmpty {
-                emptyStateView(message: "予定されたワークアウトはありません")
+                emptyStateView(message: NSLocalizedString("home.upcoming_workouts.empty", comment: ""))
             } else {
                 ForEach(viewModel.upcomingWorkouts) { workout in
                     UpcomingWorkoutCard(workout: workout)
@@ -154,12 +154,12 @@ struct HomeView: View {
 
     private var recentActivitySection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("最近の活動")
+            Text(NSLocalizedString("home.recent_activity.title", comment: ""))
                 .font(.headline)
                 .padding(.horizontal)
 
             if viewModel.recentSessions.isEmpty {
-                emptyStateView(message: "まだワークアウトの記録がありません")
+                emptyStateView(message: NSLocalizedString("home.recent_activity.empty", comment: ""))
             } else {
                 ForEach(viewModel.recentSessions) { session in
                     RecentSessionCard(session: session)
@@ -246,7 +246,7 @@ struct RecentSessionCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("ランニング")
+                    Text(NSLocalizedString("home.recent_activity.running", comment: ""))
                         .font(.headline)
 
                     Text(formattedDate(session.startDate))
@@ -270,7 +270,7 @@ struct RecentSessionCard: View {
 
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("距離")
+                    Text(NSLocalizedString("home.recent_activity.distance", comment: ""))
                         .font(.caption2)
                         .foregroundColor(.secondary)
                     Text(formattedDistance(session.distance))
@@ -279,7 +279,7 @@ struct RecentSessionCard: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("時間")
+                    Text(NSLocalizedString("home.recent_activity.duration", comment: ""))
                         .font(.caption2)
                         .foregroundColor(.secondary)
                     Text(formattedDuration(session.duration))
@@ -288,7 +288,7 @@ struct RecentSessionCard: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("カロリー")
+                    Text(NSLocalizedString("home.recent_activity.calories", comment: ""))
                         .font(.caption2)
                         .foregroundColor(.secondary)
                     Text("\(Int(session.calories)) kcal")
@@ -304,7 +304,7 @@ struct RecentSessionCard: View {
     }
 
     private func formattedDate(_ date: Date) -> String {
-        DateFormatter.japaneseMedium.string(from: date)
+        DateFormatter.localizedMedium.string(from: date)
     }
 
     private func formattedDuration(_ duration: TimeInterval) -> String {
