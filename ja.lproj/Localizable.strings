@@ -1,0 +1,222 @@
+// 日本語用の文字列
+"home.title" = "ホール一覧";
+"home.add_hole" = "ホール追加";
+"home.delete_hole" = "ホール削除";
+"home.delete_confirmation.title" = "ホールを削除しますか？";
+"home.delete_confirmation.message" = "この操作は取り消せません。";
+"common.delete" = "削除";
+"common.cancel" = "キャンセル";
+"common.skip" = "スキップ";
+
+"settings.title" = "設定";
+"settings.terms_of_service" = "利用規約";
+"settings.privacy_policy" = "プライバシーポリシー";
+"settings.contact_us" = "お問い合わせ";
+"settings.app_version" = "アプリのバージョン";
+
+"goal.title" = "なりたい自分は？";
+"goal.subtitle" = "あなたの目標を選んでください";
+
+"basicinfo.title" = "あなたについて教えてください";
+"basicinfo.subtitle" = "基本情報を選択してください";
+"basicinfo.age" = "年齢";
+"basicinfo.age.unit" = "歳";
+"basicinfo.height" = "身長";
+"basicinfo.height.unit" = "cm";
+"basicinfo.weight" = "体重";
+"basicinfo.weight.unit" = "kg";
+"basicinfo.age.picker.title" = "年齢を選択";
+"basicinfo.height.picker.title" = "身長を選択";
+"basicinfo.weight.picker.title" = "体重を選択";
+"common.done" = "完了";
+
+"available_time.title" = "1週間に使える時間は？";
+"available_time.hours.format" = "%d時間";
+"available_time.stepper.label" = "週あたりの利用可能時間";
+"available_time.subtitle" = "運動に使える週あたりの時間を教えてください";
+
+"scoring.header.title" = "お疲れ様でした！";
+"scoring.header.subtitle" = "ワークアウトを記録します";
+"scoring.nav.title" = "ワークアウト記録";
+"scoring.summary.title" = "ワークアウト概要";
+"scoring.summary.distance" = "距離";
+"scoring.summary.duration" = "時間";
+"scoring.summary.pace" = "ペース";
+"scoring.summary.calories" = "カロリー";
+"scoring.analyzing.text" = "AIがワークアウトを分析中...";
+"scoring.reflection.title" = "今日の振り返り";
+"scoring.reflection.rpe.level" = "運動強度";
+"scoring.reflection.reflection" = "振り返り";
+"scoring.reflection.suggestions" = "次回へのアドバイス";
+"scoring.reflection.milestone.achieved" = "マイルストーン達成!";
+"scoring.progress.title" = "今週の進捗";
+"scoring.progress.completion_rate" = "達成率";
+"scoring.progress.weekly_distance" = "今週の走行距離";
+"scoring.progress.weekly_workouts" = "ワークアウト回数";
+"scoring.progress.workouts.unit" = "%d回";
+"scoring.progress.next_milestone" = "次のマイルストーン";
+"scoring.save_button" = "記録を保存";
+"scoring.fallback.title" = "AI分析に失敗しました";
+"fallback.subtitle" = "基本情報のみでワークアウトを保存できます";
+"fallback.save_button" = "分析なしで保存";
+"scoring.success.message" = "保存しました";
+
+"rpe.title" = "運動のきつさ";
+"rpe.description" = "走り終わった直後の感覚で、どれくらいきつかったかを教えてください";
+"rpe.slider.label" = "運動のきつさを選択";
+"rpe.slider.min.label" = "非常に楽";
+"rpe.slider.max.label" = "非常にきつい";
+
+"workout_detail.loading_reflection" = "振り返りを読み込み中...";
+"workout_detail.nav.title" = "ワークアウト詳細";
+"workout_detail.stats.distance" = "距離";
+"workout_detail.stats.duration" = "時間";
+"workout_detail.stats.pace" = "ペース";
+"workout_detail.stats.calories" = "カロリー";
+"workout_detail.reflection.title" = "AI振り返り";
+"workout_detail.reflection.todays_run" = "今日のランニング";
+"workout_detail.reflection.suggestions" = "次回へのアドバイス";
+"workout_detail.reflection.milestone_achieved" = "マイルストーン達成！";
+"workout_detail.reflection.congratulations" = "おめでとうございます！";
+
+"workout_history.loading" = "読み込み中...";
+"workout_history.nav.title" = "ワークアウト履歴";
+"workout_history.empty.title" = "まだワークアウトがありません";
+"workout_history.empty.subtitle" = "ランニングを記録して、振り返りを確認しましょう";
+
+"gear.nav.title" = "ギア推奨";
+"gear.header.title" = "あなたにおすすめのギア";
+"gear.header.subtitle" = "ランニングを始めるために必要なアイテムを、予算別にご紹介します";
+"gear.loading_products" = "商品を読み込み中...";
+
+"common.back" = "戻る";
+"common.next" = "次へ";
+"onboarding.error.save_profile" = "プロフィールの保存に失敗しました: %@";
+"common.error" = "エラー";
+
+"ideal_frequency.title" = "理想の運動頻度は？";
+"ideal_frequency.accessibility.label" = "理想の運動頻度";
+"ideal_frequency.description" = "週に何回運動したいですか？";
+
+"current_frequency.title" = "現在の運動頻度は？";
+"current_frequency.accessibility.label" = "現在の運動頻度";
+"current_frequency.description" = "現在、週に何回運動していますか？\n（0回でも大丈夫です）";
+
+"common.frequency_format.week" = "週%d回";
+
+"milestone_detail.completed_date" = "達成日: %@";
+"milestone_detail.progress_title" = "進捗状況";
+"milestone_detail.progress_prompt" = "このマイルストーンに向けてワークアウトを続けましょう！";
+"milestone_detail.days_remaining" = "目標まで残り%d日";
+"milestone_detail.details_title" = "目標の詳細";
+"milestone_detail.recommended_gear_title" = "おすすめのギア";
+"common.see_more" = "もっと見る";
+"milestone_detail.recommended_gear_subtitle" = "このマイルストーン達成に役立つアイテム";
+"milestone_detail.tips_title" = "達成のためのヒント";
+"milestone_detail.tip1" = "無理をせず、自分のペースで進めましょう";
+"milestone_detail.tip2" = "水分補給を忘れずに";
+"milestone_detail.tip3" = "ワークアウト後はしっかりストレッチ";
+"milestone.preview.first_run.title" = "初めてのランニング";
+"milestone.preview.first_run.description" = "15分間のランニングを完了する";
+
+"greeting.morning" = "おはようございます";
+"greeting.afternoon" = "こんにちは";
+"greeting.evening" = "こんばんは";
+
+"step_progress.keep_going" = "次のステップに向けて頑張りましょう";
+
+"goal.option.lose_weight.title" = "体重を減らしたい";
+"goal.option.build_stamina.title" = "体力をつけたい";
+"goal.option.stress_relief.title" = "ストレス解消したい";
+"goal.option.complete_distance.title" = "特定の距離を完走したい";
+"goal.option.health_improvement.title" = "健康を改善したい";
+
+"goal.option.lose_weight.subtitle" = "脂肪を減らし、見た目や健康を改善";
+"goal.option.build_stamina.subtitle" = "持久力をつけ、長く走れる身体に";
+"goal.option.stress_relief.subtitle" = "気分転換・リフレッシュのために走る";
+"goal.option.complete_distance.subtitle" = "5km/10kmなどの完走を目指す";
+"goal.option.health_improvement.subtitle" = "日々の体調や健康指標の改善";
+
+"goal.roadmap_title.lose_weight" = "減量のための道";
+"goal.roadmap_title.build_stamina" = "体力向上のための道";
+"goal.roadmap_title.stress_relief" = "ストレス解消のための道";
+"goal.roadmap_title.complete_distance" = "完走のための道";
+"goal.roadmap_title.health_improvement" = "健康改善のための道";
+
+"running.title" = "ランニング";
+"running.stats.distance" = "距離";
+"running.stats.duration" = "時間";
+"running.stats.pace" = "ペース";
+"running.button.start" = "スタート";
+"running.button.finish" = "終了";
+"running.alert.end_workout.title" = "ワークアウトを終了しますか？";
+"running.alert.end_workout.message" = "記録を保存して終了します";
+"common.ok" = "OK";
+
+"roadmap.title" = "ロードマップ";
+"roadmap.target_date" = "目標日: %@";
+"roadmap.generating.title" = "生成中...";
+"roadmap.generating.subtitle" = "あなた専用のロードマップを作成しています";
+"roadmap.empty.title" = "ロードマップがまだ作成されていません";
+"roadmap.empty.create_button" = "ロードマップを作成";
+"roadmap.milestone.completed" = "完了: %@";
+"roadmap.milestone.workouts_count" = "%d回のワークアウト";
+"roadmap.milestone.status.completed" = "完了済み";
+"roadmap.milestone.status.pending" = "未完了";
+
+"settings.profile.section" = "プロフィール";
+"settings.profile.basic_info" = "基本情報";
+"settings.profile.goal_setting" = "目標設定";
+"settings.profile.age_height_format" = "%d歳・%.0fcm";
+"settings.data.section" = "データ";
+"settings.data.sync_status" = "同期状態";
+"settings.data.manual_sync" = "手動同期";
+"settings.app_info.section" = "アプリについて";
+"settings.app_info.version" = "バージョン";
+"settings.app_info.privacy_policy" = "プライバシーポリシー";
+"settings.app_info.terms" = "利用規約";
+"settings.danger.reset_button" = "データを削除してリセット";
+"settings.danger.alert.title" = "データを削除";
+"settings.danger.alert.message" = "全てのデータ（ロードマップ、ワークアウト履歴、プロフィール）が削除され、オンボーディング画面に戻ります。本当によろしいですか？";
+"settings.danger.alert.cancel" = "キャンセル";
+"settings.danger.alert.delete" = "削除";
+"settings.error.title" = "エラー";
+
+"home.greeting" = "今日も頑張りましょう!";
+"home.progress.title" = "達成状況";
+"home.progress.completed_format" = "%d / %d";
+"home.progress.percentage_format" = "%d%% 完了";
+"home.upcoming_workouts.title" = "今後の予定";
+"home.upcoming_workouts.empty" = "予定されたワークアウトはありません";
+"home.recent_activity.title" = "最近の活動";
+"home.recent_activity.empty" = "まだワークアウトの記録がありません";
+"home.recent_activity.running" = "ランニング";
+"home.recent_activity.distance" = "距離";
+"home.recent_activity.duration" = "時間";
+"home.recent_activity.calories" = "カロリー";
+"home.roadmap_error.title" = "ロードマップ生成エラー";
+"home.roadmap_error.retry" = "再試行";
+
+"gear_list.title" = "そろえるもの";
+"gear_list.empty" = "おすすめのギアを読み込み中...";
+"gear_list.price_format" = "¥%@";
+"gear_list.purchased" = "購入済み";
+"gear_list.purchase_button" = "購入";
+
+"tab.home" = "ホーム";
+"tab.running" = "ランニング";
+"tab.gear" = "ギア";
+"tab.history" = "履歴";
+"tab.settings" = "設定";
+
+"profile_edit.title" = "プロフィール編集";
+"profile_edit.basic_info" = "基本情報";
+"profile_edit.age" = "年齢";
+"profile_edit.height" = "身長";
+"profile_edit.weight" = "体重";
+"profile_edit.weekly_goal" = "週間目標";
+"profile_edit.weekly_frequency_format" = "週%d回";
+"profile_edit.save" = "保存";
+
+"goal_edit.title" = "目標選択";
+"goal_edit.save" = "保存";
