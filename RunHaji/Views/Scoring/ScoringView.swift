@@ -83,11 +83,13 @@ struct ScoringView: View {
                         reflectionSection(reflection)
                     }
 
-                    Divider()
-                        .padding(.horizontal)
+                    // Current Milestone Section (only show after analysis)
+                    if !viewModel.isAnalyzing {
+                        Divider()
+                            .padding(.horizontal)
 
-                    // Progress Section
-                    progressSection
+                        currentMilestoneSection
+                    }
                 }
                 .padding()
             }
@@ -278,103 +280,75 @@ struct ScoringView: View {
         }
     }
 
-    private var progressSection: some View {
+    private var currentMilestoneSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("今週の進捗")
+            Text("現在のマイルストーン")
                 .font(.headline)
                 .foregroundColor(.primary)
 
-            VStack(spacing: 12) {
-                // Progress Bar
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("達成率")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+            if let milestone = currentMilestone {
+                VStack(spacing: 16) {
+                    // Milestone Info
+                    HStack(spacing: 12) {
+                        Image(systemName: "flag.fill")
+                            .foregroundColor(.orange)
+                            .font(.title2)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(milestone.title)
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+
+                            if let description = milestone.description {
+                                Text(description)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
 
                         Spacer()
-
-                        Text(String(format: "%.0f%%", viewModel.progressPercentage))
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.primary)
                     }
 
-                    GeometryReader { geometry in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.gray.opacity(0.2))
-                                .frame(height: 12)
+                    // Achievement Status (if reflection available)
+                    if let reflection = viewModel.workoutReflection,
+                       let milestoneProgress = reflection.milestoneProgress {
+                        Divider()
 
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [.blue, .green],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .frame(
-                                    width: geometry.size.width * (viewModel.progressPercentage / 100),
-                                    height: 12
-                                )
+                        VStack(spacing: 12) {
+                            // Status Icon and Message
+                            HStack(spacing: 12) {
+                                Image(systemName: milestoneProgress.isAchieved ? "checkmark.circle.fill" : "circle")
+                                    .foregroundColor(milestoneProgress.isAchieved ? .green : .secondary)
+                                    .font(.title2)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(milestoneProgress.isAchieved ? "達成しました！" : "進捗状況")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(milestoneProgress.isAchieved ? .green : .primary)
+
+                                    Text(milestoneProgress.achievementMessage)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+
+                                Spacer()
+                            }
                         }
                     }
-                    .frame(height: 12)
                 }
-
-                Divider()
-
-                // Weekly Stats
-                HStack(spacing: 20) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("今週の走行距離")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(viewModel.formatWeeklyDistance())
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                    }
-
-                    Divider()
-                        .frame(height: 30)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("ワークアウト回数")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("\(viewModel.weeklyWorkouts)回")
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                    }
-                }
-
-                Divider()
-
-                // Next Milestone
-                HStack(spacing: 12) {
-                    Image(systemName: "flag.fill")
-                        .foregroundColor(.orange)
-                        .font(.title3)
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("次のマイルストーン")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(viewModel.getNextMilestone(userGoal: userGoal, idealFrequency: idealFrequency))
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                    }
-
-                    Spacer()
-                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.systemBackground))
+                        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+                )
+            } else {
+                Text("現在、進行中のマイルストーンがありません")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding()
             }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-            )
         }
     }
 
@@ -487,36 +461,20 @@ struct ScoringView: View {
         )
 
         Task {
-            await viewModel.calculateWeeklyProgress(
-                userGoal: userGoal,
-                idealFrequency: idealFrequency
-            )
-
-            // Only analyze if not already done
+            // Only process if not already done
             guard viewModel.workoutReflection == nil && !viewModel.isAnalyzing else { return }
 
-            // Analyze workout with ChatGPT
-            await viewModel.analyzeWorkout(
+            // Process workout completion (analyze + save)
+            let milestoneAchieved = await viewModel.processWorkoutCompletion(
                 userGoal: userGoal,
                 currentMilestone: currentMilestone
             )
 
-            // Auto-save after analysis
-            if viewModel.workoutReflection != nil {
-                // Trigger confetti if milestone was achieved (before saving)
-                if let reflection = viewModel.workoutReflection,
-                   reflection.milestoneProgress?.isAchieved == true {
-                    // Delay slightly for better UX
-                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-                    confettiCounter += 1
-                }
-
-                // Analysis succeeded - save with reflection
-                await viewModel.saveWorkoutWithReflection()
-            } else if viewModel.errorMessage != nil {
-                // Analysis failed - save with fallback reflection
-                print("⚠️ Analysis failed, saving with fallback reflection")
-                await viewModel.saveWorkoutWithFallback()
+            // Trigger confetti if milestone was achieved
+            if milestoneAchieved {
+                // Delay slightly for better UX
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                confettiCounter += 1
             }
         }
     }
