@@ -17,12 +17,12 @@ struct BasicInfoStepView: View {
         VStack(spacing: 24) {
             // Header
             VStack(spacing: 8) {
-                Text("あなたについて教えてください")
+                Text(NSLocalizedString("basicinfo.title", comment: "Basic info title"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
-                Text("基本情報を選択してください")
+                Text(NSLocalizedString("basicinfo.subtitle", comment: "Basic info subtitle"))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -34,9 +34,9 @@ struct BasicInfoStepView: View {
                 // Age
                 InfoCard(
                     icon: "person.fill",
-                    label: "年齢",
+                    label: NSLocalizedString("basicinfo.age", comment: "Age"),
                     value: "\(viewModel.age)",
-                    unit: "歳",
+                    unit: NSLocalizedString("basicinfo.age.unit", comment: "Age unit"),
                     color: .blue
                 ) {
                     showAgePicker = true
@@ -45,9 +45,9 @@ struct BasicInfoStepView: View {
                 // Height
                 InfoCard(
                     icon: "ruler.fill",
-                    label: "身長",
+                    label: NSLocalizedString("basicinfo.height", comment: "Height"),
                     value: String(format: "%.0f", viewModel.height),
-                    unit: "cm",
+                    unit: NSLocalizedString("basicinfo.height.unit", comment: "Height unit"),
                     color: .green
                 ) {
                     showHeightPicker = true
@@ -56,9 +56,9 @@ struct BasicInfoStepView: View {
                 // Weight
                 InfoCard(
                     icon: "scalemass.fill",
-                    label: "体重",
+                    label: NSLocalizedString("basicinfo.weight", comment: "Weight"),
                     value: String(format: "%.1f", viewModel.weight),
-                    unit: "kg",
+                    unit: NSLocalizedString("basicinfo.weight.unit", comment: "Weight unit"),
                     color: .orange
                 ) {
                     showWeightPicker = true
@@ -70,27 +70,27 @@ struct BasicInfoStepView: View {
         }
         .sheet(isPresented: $showAgePicker) {
             PickerSheet(
-                title: "年齢を選択",
+                title: NSLocalizedString("basicinfo.age.picker.title", comment: "Age picker title"),
                 selection: $viewModel.age,
                 range: Array(10...100),
-                unit: "歳"
+                unit: NSLocalizedString("basicinfo.age.unit", comment: "Age unit")
             )
         }
         .sheet(isPresented: $showHeightPicker) {
             PickerSheet(
-                title: "身長を選択",
+                title: NSLocalizedString("basicinfo.height.picker.title", comment: "Height picker title"),
                 selection: $viewModel.height,
                 range: Array(stride(from: 140.0, through: 210.0, by: 1.0)),
-                unit: "cm",
+                unit: NSLocalizedString("basicinfo.height.unit", comment: "Height unit"),
                 format: "%.0f"
             )
         }
         .sheet(isPresented: $showWeightPicker) {
             PickerSheet(
-                title: "体重を選択",
+                title: NSLocalizedString("basicinfo.weight.picker.title", comment: "Weight picker title"),
                 selection: $viewModel.weight,
                 range: Array(stride(from: 35.0, through: 150.0, by: 0.5)),
-                unit: "kg",
+                unit: NSLocalizedString("basicinfo.weight.unit", comment: "Weight unit"),
                 format: "%.1f"
             )
         }
@@ -191,7 +191,7 @@ struct PickerSheet<T: Hashable>: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完了") {
+                    Button(NSLocalizedString("common.done", comment: "Done button")) {
                         dismiss()
                     }
                     .fontWeight(.semibold)

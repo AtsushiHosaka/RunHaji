@@ -80,7 +80,7 @@ struct StepProgressView: View {
 
             // Progress text
             if let milestone = currentMilestone {
-                Text(milestone.description ?? "次のステップに向けて頑張りましょう")
+                Text(milestone.description ?? NSLocalizedString("step_progress.keep_going", comment: ""))
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)

@@ -55,11 +55,11 @@ struct ScoringView: View {
                             .font(.system(size: 60))
                             .foregroundColor(.green)
 
-                        Text("お疲れ様でした！")
+                        Text(NSLocalizedString("scoring.header.title", comment: "Scoring header title"))
                             .font(.title)
                             .fontWeight(.bold)
 
-                        Text("ワークアウトを記録します")
+                        Text(NSLocalizedString("scoring.header.subtitle", comment: "Scoring header subtitle"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -94,11 +94,11 @@ struct ScoringView: View {
                 }
                 .padding()
             }
-            .navigationTitle("ワークアウト記録")
+            .navigationTitle(NSLocalizedString("scoring.nav.title", comment: "Scoring navigation title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("スキップ") {
+                    Button(NSLocalizedString("common.skip", comment: "Skip button")) {
                         dismiss()
                     }
                 }
@@ -108,7 +108,7 @@ struct ScoringView: View {
                     successOverlay
                 }
             }
-            .alert("エラー", isPresented: Binding(
+            .alert(NSLocalizedString("common.error", comment: ""), isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
             )) {
@@ -130,7 +130,7 @@ struct ScoringView: View {
 
     private var workoutSummarySection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("ワークアウト概要")
+            Text(NSLocalizedString("scoring.summary.title", comment: "Workout summary title"))
                 .font(.headline)
                 .foregroundColor(.primary)
 
@@ -140,28 +140,28 @@ struct ScoringView: View {
             ], spacing: 16) {
                 StatCard(
                     icon: "figure.run",
-                    title: "距離",
+                    title: NSLocalizedString("scoring.summary.distance", comment: "Distance"),
                     value: viewModel.formatDistance(distance),
                     color: .blue
                 )
 
                 StatCard(
                     icon: "clock",
-                    title: "時間",
+                    title: NSLocalizedString("scoring.summary.duration", comment: "Duration"),
                     value: viewModel.formatDuration(duration),
                     color: .green
                 )
 
                 StatCard(
                     icon: "speedometer",
-                    title: "ペース",
+                    title: NSLocalizedString("scoring.summary.pace", comment: "Pace"),
                     value: viewModel.formatPace(distance, duration),
                     color: .orange
                 )
 
                 StatCard(
                     icon: "flame",
-                    title: "カロリー",
+                    title: NSLocalizedString("scoring.summary.calories", comment: "Calories"),
                     value: viewModel.formatCalories(calories),
                     color: .red
                 )
@@ -174,7 +174,7 @@ struct ScoringView: View {
             ProgressView()
                 .scaleEffect(1.5)
 
-            Text("AIがワークアウトを分析中...")
+            Text(NSLocalizedString("scoring.analyzing.text", comment: "Analyzing workout text"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
@@ -184,7 +184,7 @@ struct ScoringView: View {
 
     private func reflectionSection(_ reflection: WorkoutReflection) -> some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("今日の振り返り")
+            Text(NSLocalizedString("scoring.reflection.title", comment: "Today's reflection title"))
                 .font(.headline)
                 .foregroundColor(.primary)
 
@@ -210,7 +210,7 @@ struct ScoringView: View {
                     Text(rpeLevel(reflection.estimatedRPE))
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                    Text("運動強度")
+                    Text(NSLocalizedString("scoring.reflection.rpe.level", comment: "RPE level"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -226,7 +226,7 @@ struct ScoringView: View {
 
             // Reflection
             VStack(alignment: .leading, spacing: 8) {
-                Label("振り返り", systemImage: "bubble.left.fill")
+                Label(NSLocalizedString("scoring.reflection.reflection", comment: "Reflection"), systemImage: "bubble.left.fill")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.blue)
@@ -244,7 +244,7 @@ struct ScoringView: View {
 
             // Suggestions
             VStack(alignment: .leading, spacing: 8) {
-                Label("次回へのアドバイス", systemImage: "lightbulb.fill")
+                Label(NSLocalizedString("scoring.reflection.suggestions", comment: "Suggestions"), systemImage: "lightbulb.fill")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.orange)
@@ -268,7 +268,7 @@ struct ScoringView: View {
                         .foregroundColor(.yellow)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("マイルストーン達成!")
+                        Text(NSLocalizedString("scoring.reflection.milestone.achieved", comment: "Milestone achieved"))
                             .font(.subheadline)
                             .fontWeight(.semibold)
                         Text(milestoneProgress.achievementMessage)
@@ -289,7 +289,7 @@ struct ScoringView: View {
 
     private var progressSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("今週の進捗")
+            Text(NSLocalizedString("scoring.progress.title", comment: "Weekly progress title"))
                 .font(.headline)
                 .foregroundColor(.primary)
 
@@ -297,7 +297,7 @@ struct ScoringView: View {
                 // Progress Bar
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("達成率")
+                        Text(NSLocalizedString("scoring.progress.completion_rate", comment: "Completion rate"))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
 
@@ -337,7 +337,7 @@ struct ScoringView: View {
                 // Weekly Stats
                 HStack(spacing: 20) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("今週の走行距離")
+                        Text(NSLocalizedString("scoring.progress.weekly_distance", comment: "Weekly distance"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Text(viewModel.formatWeeklyDistance())
@@ -349,10 +349,10 @@ struct ScoringView: View {
                         .frame(height: 30)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("ワークアウト回数")
+                        Text(NSLocalizedString("scoring.progress.weekly_workouts", comment: "Weekly workouts"))
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text("\(viewModel.weeklyWorkouts)回")
+                        Text(String(format: NSLocalizedString("scoring.progress.workouts.unit", comment: "Workouts unit"), viewModel.weeklyWorkouts))
                             .font(.title3)
                             .fontWeight(.semibold)
                     }
@@ -367,7 +367,7 @@ struct ScoringView: View {
                         .font(.title3)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("次のマイルストーン")
+                        Text(NSLocalizedString("scoring.progress.next_milestone", comment: "Next milestone"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Text(viewModel.getNextMilestone(userGoal: userGoal, idealFrequency: idealFrequency))
@@ -401,7 +401,7 @@ struct ScoringView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                 } else {
-                    Text("記録を保存")
+                    Text(NSLocalizedString("scoring.save_button", comment: "Save button"))
                         .fontWeight(.semibold)
                 }
             }
@@ -421,11 +421,11 @@ struct ScoringView: View {
                     .font(.largeTitle)
                     .foregroundColor(.orange)
 
-                Text("AI分析に失敗しました")
+                Text(NSLocalizedString("scoring.fallback.title", comment: "Fallback title"))
                     .font(.headline)
                     .foregroundColor(.primary)
 
-                Text("基本情報のみでワークアウトを保存できます")
+                Text(NSLocalizedString("scoring.fallback.subtitle", comment: "Fallback subtitle"))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -449,7 +449,7 @@ struct ScoringView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("分析なしで保存")
+                        Text(NSLocalizedString("scoring.fallback.save_button", comment: "Fallback save button"))
                             .fontWeight(.semibold)
                     }
                 }
@@ -469,7 +469,7 @@ struct ScoringView: View {
             HStack {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.white)
-                Text("保存しました")
+                Text(NSLocalizedString("scoring.success.message", comment: "Success message"))
                     .foregroundColor(.white)
                     .fontWeight(.medium)
             }

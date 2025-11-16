@@ -14,13 +14,13 @@ struct SettingsView: View {
         NavigationView {
             Form {
                 // Profile Section
-                Section("プロフィール") {
+                Section(NSLocalizedString("settings.profile.section", comment: "")) {
                     NavigationLink(destination: ProfileEditView(viewModel: viewModel)) {
                         HStack {
-                            Text("基本情報")
+                            Text(NSLocalizedString("settings.profile.basic_info", comment: ""))
                             Spacer()
                             if let user = viewModel.user {
-                                Text("\(user.profile.age ?? 0)歳・\(String(format: "%.0f", user.profile.height ?? 0))cm")
+                                Text(String(format: NSLocalizedString("settings.profile.age_height_format", comment: ""), user.profile.age ?? 0, user.profile.height ?? 0))
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -28,7 +28,7 @@ struct SettingsView: View {
                     
                     NavigationLink(destination: GoalEditView(viewModel: viewModel)) {
                         HStack {
-                            Text("目標設定")
+                            Text(NSLocalizedString("settings.profile.goal_setting", comment: ""))
                             Spacer()
                             if let goal = viewModel.user?.profile.goal {
                                 Text(goal.description)
@@ -39,9 +39,9 @@ struct SettingsView: View {
                 }
                 
                 // Data Section
-                Section("データ") {
+                Section(NSLocalizedString("settings.data.section", comment: "")) {
                     HStack {
-                        Text("同期状態")
+                        Text(NSLocalizedString("settings.data.sync_status", comment: ""))
                         Spacer()
                         if viewModel.isSyncing {
                             ProgressView()
@@ -51,7 +51,7 @@ struct SettingsView: View {
                         }
                     }
                     
-                    Button("手動同期") {
+                    Button(NSLocalizedString("settings.data.manual_sync", comment: "")) {
                         Task {
                             await viewModel.syncData()
                         }
@@ -59,16 +59,16 @@ struct SettingsView: View {
                 }
                 
                 // App Info Section
-                Section("アプリについて") {
+                Section(NSLocalizedString("settings.app_info.section", comment: "")) {
                     HStack {
-                        Text("バージョン")
+                        Text(NSLocalizedString("settings.app_info.version", comment: ""))
                         Spacer()
                         Text("1.0.0")
                             .foregroundColor(.secondary)
                     }
                     
-                    Link("プライバシーポリシー", destination: URL(string: "https://example.com/privacy")!)
-                    Link("利用規約", destination: URL(string: "https://example.com/terms")!)
+                    Link(NSLocalizedString("settings.app_info.privacy_policy", comment: ""), destination: URL(string: "https://example.com/privacy")!)
+                    Link(NSLocalizedString("settings.app_info.terms", comment: ""), destination: URL(string: "https://example.com/terms")!)
                 }
                 
                 // Danger Zone
@@ -76,20 +76,20 @@ struct SettingsView: View {
                     Button(role: .destructive) {
                         viewModel.showingDeleteAlert = true
                     } label: {
-                        Text("データを削除してリセット")
+                        Text(NSLocalizedString("settings.danger.reset_button", comment: ""))
                     }
                 }
             }
-            .navigationTitle("設定")
-            .alert("データを削除", isPresented: $viewModel.showingDeleteAlert) {
-                Button("キャンセル", role: .cancel) { }
-                Button("削除", role: .destructive) {
+            .navigationTitle(NSLocalizedString("settings.title", comment: ""))
+            .alert(NSLocalizedString("settings.danger.alert.title", comment: ""), isPresented: $viewModel.showingDeleteAlert) {
+                Button(NSLocalizedString("settings.danger.alert.cancel", comment: ""), role: .cancel) { }
+                Button(NSLocalizedString("settings.danger.alert.delete", comment: ""), role: .destructive) {
                     viewModel.deleteAllData()
                 }
             } message: {
-                Text("全てのデータ（ロードマップ、ワークアウト履歴、プロフィール）が削除され、オンボーディング画面に戻ります。本当によろしいですか？")
+                Text(NSLocalizedString("settings.danger.alert.message", comment: ""))
             }
-            .alert("エラー", isPresented: Binding(
+            .alert(NSLocalizedString("settings.error.title", comment: ""), isPresented: Binding(
                 get: { viewModel.errorMessage != nil },
                 set: { if !$0 { viewModel.errorMessage = nil } }
             )) {

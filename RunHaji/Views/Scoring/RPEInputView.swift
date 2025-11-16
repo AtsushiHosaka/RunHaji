@@ -12,7 +12,7 @@ struct RPEInputView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("運動のきつさ")
+            Text(NSLocalizedString("rpe.title", comment: "RPE title"))
                 .font(.headline)
                 .foregroundColor(.primary)
 
@@ -49,17 +49,17 @@ struct RPEInputView: View {
                     step: 1
                 )
                 .tint(rpeColor)
-                .accessibilityLabel("運動のきつさを選択")
+                .accessibilityLabel(NSLocalizedString("rpe.slider.label", comment: "RPE slider label"))
                 .accessibilityValue("\(selectedRPE)、\(rpeLevel)")
 
                 HStack {
-                    Text("非常に楽")
+                    Text(NSLocalizedString("rpe.slider.min.label", comment: "RPE slider min label"))
                         .font(.caption)
                         .foregroundColor(.secondary)
 
                     Spacer()
 
-                    Text("非常にきつい")
+                    Text(NSLocalizedString("rpe.slider.max.label", comment: "RPE slider max label"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -105,7 +105,7 @@ struct RPEInputView: View {
     // MARK: - Computed Properties
 
     private var rpeDescription: String {
-        "走り終わった直後の感覚で、どれくらいきつかったかを教えてください"
+        NSLocalizedString("rpe.description", comment: "RPE description")
     }
 
     private var rpeLevel: String {

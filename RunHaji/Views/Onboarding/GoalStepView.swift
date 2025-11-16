@@ -12,12 +12,12 @@ struct GoalStepView: View {
 
     var body: some View {
         VStack(spacing: 30) {
-            Text("なりたい自分は？")
+            Text(NSLocalizedString("goal.title", comment: "Goal selection title"))
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .padding(.top, 40)
 
-            Text("あなたの目標を選んでください")
+            Text(NSLocalizedString("goal.subtitle", comment: "Goal selection subtitle"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 

@@ -12,27 +12,27 @@ struct MainTabView: View {
         TabView {
             HomeView()
                 .tabItem {
-                    Label("ホーム", systemImage: "house.fill")
+                    Label(NSLocalizedString("tab.home", comment: ""), systemImage: "house.fill")
                 }
 
             RunningView()
                 .tabItem {
-                    Label("ランニング", systemImage: "figure.run")
+                    Label(NSLocalizedString("tab.running", comment: ""), systemImage: "figure.run")
                 }
 
             GearView()
                 .tabItem {
-                    Label("ギア", systemImage: "cart.fill")
+                    Label(NSLocalizedString("tab.gear", comment: ""), systemImage: "cart.fill")
                 }
 
             WorkoutHistoryView()
                 .tabItem {
-                    Label("履歴", systemImage: "list.bullet")
+                    Label(NSLocalizedString("tab.history", comment: ""), systemImage: "list.bullet")
                 }
 
             SettingsView()
                 .tabItem {
-                    Label("設定", systemImage: "gearshape.fill")
+                    Label(NSLocalizedString("tab.settings", comment: ""), systemImage: "gearshape.fill")
                 }
         }
         .tint(.accent)
